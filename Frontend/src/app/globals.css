@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0E0B10;
+  --foreground: #F3EDE4;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom golden glow effects */
+.gold-glow {
+  box-shadow: 0 10px 40px rgba(201, 166, 107, 0.15);
+}
+
+.gold-glow-hover:hover {
+  box-shadow: 0 12px 45px rgba(201, 166, 107, 0.3);
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #DFBF8B 0%, #C9A66B 50%, #A7844A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtle background luxury radial glow */
+.bg-aura-glow {
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(201, 166, 107, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(217, 165, 160, 0.05) 0%, transparent 50%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0E0B10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A141F;
+  border-radius: 4px;
+  border: 1px solid rgba(201, 166, 107, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C9A66B;
+}
+
+/* Accessibility focus rings */
+*:focus-visible {
+  outline: 2px solid #C9A66B;
+  outline-offset: 3px;
+}

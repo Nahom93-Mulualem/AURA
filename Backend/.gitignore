@@ -1,0 +1,15 @@
+# Go binary outputs
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Uploads directory
+uploads/
+!uploads/.gitkeep
+
+# Environment files
+.env
+.env.local

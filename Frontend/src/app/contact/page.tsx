@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
+import TikTokIcon from "@/components/ui/TikTokIcon";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
 const FAQ_ITEMS = [
@@ -151,6 +152,36 @@ export default function ContactPage() {
           >
             <span>Open Instagram</span>
             <Instagram className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        {/* TikTok */}
+        <div className="p-6 rounded-card bg-plum/60 border border-gold/20 shadow-sm flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-full bg-midnight border border-gold/40 flex items-center justify-center text-gold">
+              <TikTokIcon className="w-5 h-5" />
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] tracking-wider uppercase font-semibold">
+              Fragrance Videos
+            </span>
+          </div>
+          <div>
+            <h3 className="font-serif text-xl text-softwhite">TikTok</h3>
+            <p className="text-xs text-stone-muted mt-1">
+              Unboxing, scent reviews, and application tips.
+            </p>
+            <p className="text-sm text-gold font-mono mt-2">
+              {BRAND_CONTACT.tiktokHandle}
+            </p>
+          </div>
+          <a
+            href={BRAND_CONTACT.tiktok}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full min-h-[44px] rounded-full bg-midnight border border-gold/30 hover:border-gold text-softwhite hover:text-gold text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-colors"
+          >
+            <span>Open TikTok</span>
+            <TikTokIcon className="w-3.5 h-3.5" />
           </a>
         </div>
 

@@ -13,6 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
+import TikTokIcon from "@/components/ui/TikTokIcon";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
 export default function Footer() {
@@ -38,9 +39,6 @@ export default function Footer() {
             <p className="text-stone-muted text-sm leading-relaxed max-w-sm">
               Artisanal, luxury boutique fragrances crafted to awaken emotion and leave an unforgettable personal presence. Based in Addis Ababa, Ethiopia.
             </p>
-            <div className="inline-block px-3 py-1 rounded-full bg-midnight/60 border border-gold/20 text-[11px] text-gold tracking-widest uppercase">
-              100% Authentic Stock • Ethiopian Birr
-            </div>
           </div>
 
           {/* Column 2: Quick Links */}
@@ -154,6 +152,15 @@ export default function Footer() {
                 className="w-10 h-10 rounded-full bg-midnight border border-rose-dust/40 flex items-center justify-center text-softwhite hover:border-rose-dust hover:text-rose-dust hover:scale-105 transition-all shadow-glow"
               >
                 <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href={BRAND_CONTACT.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="w-10 h-10 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
+              >
+                <TikTokIcon className="w-4 h-4" />
               </a>
               <a
                 href={`mailto:${BRAND_CONTACT.email}`}

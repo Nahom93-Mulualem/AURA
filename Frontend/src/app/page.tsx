@@ -62,18 +62,6 @@ export default function HomePage() {
                 <span>Contact HANI</span>
               </a>
             </div>
-
-            {/* Micro Trust Indicators */}
-            <div className="pt-4 flex items-center gap-6 text-xs text-stone-muted">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-gold" />
-                100% Authentic Scents
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-gold" />
-                Direct Boutique Care
-              </span>
-            </div>
           </div>
 
           {/* Right Column: Hero Floating Bottle Card */}

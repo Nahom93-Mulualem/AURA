@@ -11,15 +11,43 @@ import {
   Shield,
   Eye,
   Search,
+  Upload,
+  Image as ImageIcon,
   CheckCircle2,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { MOCK_PERFUMES } from "@/data/mockPerfumes";
+import { Perfume, PerfumeCategory, PerfumeStatus } from "@/types/perfume";
 import { formatPrice } from "@/lib/utils";
 
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+];
+const MAX_FILE_SIZE_MB = 5;
+
 export default function AdminPage() {
-  const [perfumes, setPerfumes] = useState(MOCK_PERFUMES);
+  const [perfumes, setPerfumes] = useState<Perfume[]>(MOCK_PERFUMES);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState("");
+
+  // New Fragrance Form State
+  const [name, setName] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+  const [priceEtb, setPriceEtb] = useState("");
+  const [sizeMl, setSizeMl] = useState("100");
+  const [status, setStatus] = useState<PerfumeStatus>("available");
+  const [category, setCategory] = useState<PerfumeCategory>("unisex");
+  const [topNotes, setTopNotes] = useState("");
+  const [heartNotes, setHeartNotes] = useState("");
+  const [baseNotes, setBaseNotes] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const toggleStatus = (id: string) => {
     setPerfumes((prev) =>
@@ -31,6 +59,84 @@ export default function AdminPage() {
         return item;
       })
     );
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate upload type
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      setUploadError(
+        "Unsupported format. Please upload JPG, PNG, WebP, or AVIF image."
+      );
+      return;
+    }
+
+    // Validate upload size (5MB max)
+    const sizeInMb = file.size / (1024 * 1024);
+    if (sizeInMb > MAX_FILE_SIZE_MB) {
+      setUploadError(
+        `File too large (${sizeInMb.toFixed(1)}MB). Maximum allowed is 5MB.`
+      );
+      return;
+    }
+
+    setImageFileName(file.name);
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+  };
+
+  const handleCreatePerfume = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !priceEtb) {
+      alert("Please provide at least a fragrance name and price.");
+      return;
+    }
+
+    const newPerfume: Perfume = {
+      id: String(Date.now()),
+      name: name.trim(),
+      slug: name.toLowerCase().replace(/\s+/g, "-"),
+      subtitle: subtitle.trim() || "Artisanal extrait de parfum",
+      tagline: "Scents that stay in memory.",
+      description: `Bespoke artisanal fragrance with notes of ${topNotes || "precious woods and florals"}.`,
+      price: Number(priceEtb),
+      sizeMl: Number(sizeMl) || 100,
+      category: category,
+      status: status,
+      featured: true,
+      notes: {
+        top: topNotes ? topNotes.split(",").map((s) => s.trim()) : ["Bergamot", "Cardamom"],
+        heart: heartNotes ? heartNotes.split(",").map((s) => s.trim()) : ["Amber", "Rose"],
+        base: baseNotes ? baseNotes.split(",").map((s) => s.trim()) : ["Oud", "Musk"],
+      },
+      images: [
+        imagePreview ||
+          "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop",
+      ],
+      longevity: "10-14 hours",
+      bestSeason: "All Seasons",
+      rating: 5.0,
+    };
+
+    setPerfumes([newPerfume, ...perfumes]);
+    setShowAddModal(false);
+
+    // Reset Form
+    setName("");
+    setSubtitle("");
+    setPriceEtb("");
+    setSizeMl("100");
+    setStatus("available");
+    setCategory("unisex");
+    setTopNotes("");
+    setHeartNotes("");
+    setBaseNotes("");
+    setImagePreview(null);
+    setImageFileName(null);
+    setUploadError(null);
   };
 
   const filtered = perfumes.filter((p) =>
@@ -49,7 +155,7 @@ export default function AdminPage() {
             </h1>
           </div>
           <p className="text-xs text-stone-muted mt-1">
-            Manage your boutique catalog, toggle availability, and edit scent details.
+            Manage your boutique catalog, toggle availability, and configure fragrance specs in Ethiopian Birr (ETB).
           </p>
         </div>
 
@@ -97,7 +203,7 @@ export default function AdminPage() {
               <tr>
                 <th className="py-3 px-4">Fragrance</th>
                 <th className="py-3 px-4">Size</th>
-                <th className="py-3 px-4">Price</th>
+                <th className="py-3 px-4">Price (ETB)</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Category</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -134,6 +240,8 @@ export default function AdminPage() {
                       className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-semibold tracking-wider transition-all ${
                         item.status === "available"
                           ? "bg-sage/20 text-sage border border-sage/40"
+                          : item.status === "new"
+                          ? "bg-gold/20 text-gold border border-gold/40"
                           : "bg-clay/20 text-clay border border-clay/40"
                       }`}
                       title="Click to toggle availability"
@@ -210,71 +318,240 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Add Fragrance Modal Preview */}
+      {/* Add Fragrance Modal with Comprehensive Specs & Picture Formats */}
       {showAddModal && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-midnight/90 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-midnight/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
         >
-          <div className="bg-plum border border-gold/30 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-glow">
+          <div className="bg-plum border border-gold/30 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-glow my-8">
             <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif text-xl text-softwhite">Add New Fragrance</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-stone-muted hover:text-gold"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="text-xs text-stone-muted">
-              Add new fragrances with name, notes, price, and image URLs.
-            </p>
-            <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-gold mb-1">Fragrance Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Amber Nocturne"
-                  className="w-full p-2.5 rounded bg-midnight border border-gold/20 text-softwhite"
-                />
+                <h3 className="font-serif text-xl text-softwhite">Add New Fragrance</h3>
+                <p className="text-[11px] text-stone-muted mt-0.5">
+                  Configure details, Ethiopian Birr pricing, and upload bottle photography.
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gold mb-1">Price ($)</label>
-                  <input
-                    type="number"
-                    placeholder="140"
-                    className="w-full p-2.5 rounded bg-midnight border border-gold/20 text-softwhite"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gold mb-1">Size (ml)</label>
-                  <input
-                    type="number"
-                    placeholder="100"
-                    className="w-full p-2.5 rounded bg-midnight border border-gold/20 text-softwhite"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 rounded-full border border-gold/30 text-xs text-softwhite"
+                className="p-1 rounded-full text-stone-muted hover:text-gold"
+                aria-label="Close modal"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  alert("New fragrance added to mock catalog!");
-                  setShowAddModal(false);
-                }}
-                className="px-5 py-2 rounded-full bg-gold text-midnight text-xs font-semibold"
-              >
-                Save Perfume
+                <X className="w-5 h-5" />
               </button>
             </div>
+
+            <form onSubmit={handleCreatePerfume} className="space-y-4 text-xs">
+              {/* Name & Subtitle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Fragrance Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Amber Nocturne"
+                    required
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Subtitle / Notes Summary
+                  </label>
+                  <input
+                    type="text"
+                    value={subtitle}
+                    onChange={(e) => setSubtitle(e.target.value)}
+                    placeholder="e.g. Dark Oud, Amber & Vanilla"
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Price (ETB) & Size (ml) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Price in ETB (Ethiopian Birr) *
+                  </label>
+                  <input
+                    type="number"
+                    value={priceEtb}
+                    onChange={(e) => setPriceEtb(e.target.value)}
+                    placeholder="e.g. 12500"
+                    required
+                    min="1"
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite font-mono focus:border-gold focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Size (ml) *
+                  </label>
+                  <select
+                    value={sizeMl}
+                    onChange={(e) => setSizeMl(e.target.value)}
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  >
+                    <option value="30">30 ml (Travel Extrait)</option>
+                    <option value="50">50 ml (Classic Flask)</option>
+                    <option value="75">75 ml (Signature)</option>
+                    <option value="100">100 ml (Grand Flacon)</option>
+                    <option value="120">120 ml (Artisanal Reserve)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Status & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Stock Status *
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as PerfumeStatus)}
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  >
+                    <option value="available">Available (In Stock)</option>
+                    <option value="new">New Arrival</option>
+                    <option value="sold_out">Sold Out</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Category *
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value as PerfumeCategory)}
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  >
+                    <option value="unisex">Unisex (Harmonious)</option>
+                    <option value="feminine">Feminine (Soft Floral)</option>
+                    <option value="masculine">Masculine (Bold Wood/Leather)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Olfactory Scent Notes */}
+              <div>
+                <label className="block text-gold mb-1 font-medium">
+                  Scent Notes (comma separated)
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <input
+                    type="text"
+                    value={topNotes}
+                    onChange={(e) => setTopNotes(e.target.value)}
+                    placeholder="Top: Bergamot, Saffron"
+                    className="p-2 rounded bg-midnight border border-gold/20 text-softwhite text-[11px]"
+                  />
+                  <input
+                    type="text"
+                    value={heartNotes}
+                    onChange={(e) => setHeartNotes(e.target.value)}
+                    placeholder="Heart: Damask Rose, Oud"
+                    className="p-2 rounded bg-midnight border border-gold/20 text-softwhite text-[11px]"
+                  />
+                  <input
+                    type="text"
+                    value={baseNotes}
+                    onChange={(e) => setBaseNotes(e.target.value)}
+                    placeholder="Base: Smoked Amber, Vanilla"
+                    className="p-2 rounded bg-midnight border border-gold/20 text-softwhite text-[11px]"
+                  />
+                </div>
+              </div>
+
+              {/* Picture Upload with Multi-Format Support (.jpg, .png, .webp, .avif) */}
+              <div>
+                <label className="block text-gold mb-1 font-medium">
+                  Bottle Picture (Formats: WEBP, JPG, PNG, AVIF • Max 5MB)
+                </label>
+
+                <div className="border-2 border-dashed border-gold/25 hover:border-gold/50 rounded-xl p-4 bg-midnight/60 text-center transition-colors">
+                  {imagePreview ? (
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-16 h-20 rounded-lg overflow-hidden bg-midnight border border-gold/30 flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imagePreview}
+                          alt="Perfume bottle preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <p className="text-xs text-softwhite font-medium truncate">
+                          {imageFileName || "Selected bottle image"}
+                        </p>
+                        <p className="text-[10px] text-sage flex items-center gap-1 mt-0.5">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Valid image ready for catalog</span>
+                        </p>
+                        <label className="text-[11px] text-gold underline cursor-pointer mt-1 inline-block">
+                          Change Image
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/jpg, image/webp, image/avif"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center gap-2 cursor-pointer py-2">
+                      <div className="w-10 h-10 rounded-full bg-plum border border-gold/30 flex items-center justify-center text-gold">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs text-gold font-medium">
+                          Click to select bottle photograph
+                        </span>
+                        <p className="text-[10px] text-stone-muted mt-0.5">
+                          Supports high-res WebP, JPEG, PNG, and AVIF up to 5MB
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/png, image/jpeg, image/jpg, image/webp, image/avif"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {uploadError && (
+                  <p className="text-xs text-clay flex items-center gap-1 mt-1.5">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>{uploadError}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Form Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gold/15">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 rounded-full border border-gold/30 text-xs text-softwhite hover:text-gold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-gold hover:bg-gold-light text-midnight text-xs font-semibold uppercase tracking-wider shadow-glow transition-all"
+                >
+                  Save & Publish Fragrance
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

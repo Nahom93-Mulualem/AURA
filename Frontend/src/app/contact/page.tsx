@@ -6,30 +6,34 @@ import {
   Instagram,
   Mail,
   Phone,
-  MessageCircle,
   Copy,
   Check,
   ChevronDown,
   Sparkles,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
 const FAQ_ITEMS = [
   {
-    q: "How do I place an order?",
-    a: "Ordering is personal and direct! Simply click on any perfume and press 'Order on Telegram' or 'Inquire on Instagram'. This will open a prefilled chat directly with HANI to confirm availability, packaging, and delivery options.",
+    q: "How do I place an order in Ethiopia?",
+    a: "Ordering is personal and direct! Simply click on any perfume and press 'Order on Telegram', 'WhatsApp', or 'Inquire on Instagram'. This connects you directly with HANI to confirm availability, packaging, and delivery in Addis Ababa or regional destinations.",
+  },
+  {
+    q: "What payment methods are accepted?",
+    a: "We accept local Ethiopian mobile banking and bank transfers (such as Telebirr, CBE Birr, Awash, or Bank of Abyssinia) as well as cash on boutique delivery within Addis Ababa.",
   },
   {
     q: "Are all perfumes 100% original?",
-    a: "Yes, without exception. Every single bottle in the Aura collection is sourced from authenticated distributors and verified perfume houses. We pride ourselves on boutique authenticity.",
+    a: "Yes, without exception. Every single bottle in the Aura collection is sourced from authenticated distributors and verified niche perfume houses. We pride ourselves on boutique authenticity.",
   },
   {
     q: "How long does delivery take?",
-    a: "Orders are prepared and securely packaged within 24 hours. Local courier delivery typically arrives within 1–2 business days. Regional and international shipping times are confirmed during your chat with HANI.",
+    a: "Within Addis Ababa, delivery is completed within 24 hours. For regional cities in Ethiopia, packages are sent via reliable express logistics within 2–3 business days.",
   },
   {
     q: "Can I receive scent advice before deciding?",
-    a: "Absolutely. HANI offers complimentary fragrance consultation. Tell her what scents you currently enjoy or the vibe you are seeking, and she will provide tailored recommendations.",
+    a: "Absolutely. HANI offers complimentary fragrance consultation. Tell her what notes you love (oud, vanilla, floral, or leather) and your budget, and she will recommend your ideal match.",
   },
 ];
 
@@ -54,7 +58,7 @@ export default function ContactPage() {
           Contact HANI
         </h1>
         <p className="text-sm text-stone-muted leading-relaxed">
-          We maintain a close, personal relationship with every customer. Connect with HANI through your preferred channel below.
+          We maintain a close, personal relationship with every fragrance lover. Connect with HANI through your preferred channel below.
         </p>
       </div>
 
@@ -67,13 +71,13 @@ export default function ContactPage() {
               <Send className="w-5 h-5" />
             </div>
             <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] tracking-wider uppercase font-semibold">
-              Fastest Reply
+              Most Popular
             </span>
           </div>
           <div>
             <h3 className="font-serif text-xl text-softwhite">Telegram</h3>
             <p className="text-xs text-stone-muted mt-1">
-              Direct chat for questions, photos, and orders.
+              Direct chat for quick consultations, photos, and orders.
             </p>
             <p className="text-sm text-gold font-mono mt-2">
               {BRAND_CONTACT.telegramHandle}
@@ -83,10 +87,40 @@ export default function ContactPage() {
             href={BRAND_CONTACT.telegram}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full min-h-[44px] rounded-full bg-gold hover:bg-gold-light text-midnight text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-colors"
+            className="w-full min-h-[44px] rounded-full bg-gold hover:bg-gold-light text-midnight text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-colors shadow-glow"
           >
             <span>Open Telegram</span>
             <Send className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        {/* WhatsApp */}
+        <div className="p-6 rounded-card bg-plum/60 border border-sage/40 shadow-sm flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-full bg-midnight border border-sage/40 flex items-center justify-center text-sage">
+              <WhatsAppIcon className="w-6 h-6" />
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-sage/15 text-sage text-[10px] tracking-wider uppercase font-semibold">
+              Direct WhatsApp
+            </span>
+          </div>
+          <div>
+            <h3 className="font-serif text-xl text-softwhite">WhatsApp</h3>
+            <p className="text-xs text-stone-muted mt-1">
+              Chat directly or request voice notes and bottle videos.
+            </p>
+            <p className="text-sm text-sage font-mono mt-2">
+              {BRAND_CONTACT.whatsappHandle}
+            </p>
+          </div>
+          <a
+            href={BRAND_CONTACT.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full min-h-[44px] rounded-full bg-plum border border-sage/40 hover:border-sage text-softwhite hover:text-sage text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-colors"
+          >
+            <span>Chat on WhatsApp</span>
+            <WhatsAppIcon className="w-4 h-4 text-sage" />
           </a>
         </div>
 
@@ -97,13 +131,13 @@ export default function ContactPage() {
               <Instagram className="w-5 h-5" />
             </div>
             <span className="px-2.5 py-0.5 rounded-full bg-rose-dust/15 text-rose-dust text-[10px] tracking-wider uppercase font-semibold">
-              Visual Stories
+              Aesthetic Stories
             </span>
           </div>
           <div>
             <h3 className="font-serif text-xl text-softwhite">Instagram</h3>
             <p className="text-xs text-stone-muted mt-1">
-              Stories, aesthetic bottle showcases, and DM inquiries.
+              Follow bottle photography, new releases, and DM inquiries.
             </p>
             <p className="text-sm text-rose-dust font-mono mt-2">
               {BRAND_CONTACT.instagramHandle}
@@ -120,7 +154,7 @@ export default function ContactPage() {
           </a>
         </div>
 
-        {/* Phone / WhatsApp */}
+        {/* Phone / Call */}
         <div className="p-6 rounded-card bg-plum/60 border border-gold/20 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-gold">
@@ -139,9 +173,9 @@ export default function ContactPage() {
             </button>
           </div>
           <div>
-            <h3 className="font-serif text-xl text-softwhite">Direct Call</h3>
+            <h3 className="font-serif text-xl text-softwhite">Phone Call</h3>
             <p className="text-xs text-stone-muted mt-1">
-              Speak with HANI directly during studio hours.
+              Call HANI directly for urgent inquiries or orders.
             </p>
             <p className="text-sm text-softwhite font-mono mt-2">
               {BRAND_CONTACT.phoneDisplay}
@@ -177,7 +211,7 @@ export default function ContactPage() {
           <div>
             <h3 className="font-serif text-xl text-softwhite">Email Inquiries</h3>
             <p className="text-xs text-stone-muted mt-1">
-              For custom orders, collaborations, and formal inquiries.
+              For corporate gifting, bulk orders, or inquiries.
             </p>
             <p className="text-sm text-softwhite font-mono mt-2 truncate">
               {BRAND_CONTACT.email}

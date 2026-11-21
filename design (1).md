@@ -154,9 +154,9 @@ One card per channel with an icon, label and handle:
 
 | Channel | Link format |
 |---|---|
-| Telegram | `https://t.me/username` |
-| Instagram | `https://instagram.com/username` |
-| TikTok | `https://tiktok.com/@username` |
+| Telegram | `https://t.me/Niha027` |
+| Instagram | `https://instagram.com/aura_by_hanii` |
+| TikTok | `https://tiktok.com/@aura.by.hani` |
 | Email | `mailto:email@gmail.com` |
 | Phone | `tel:+000000000000` |
 

@@ -35,8 +35,8 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-softwhite leading-[1.1]">
-              Wear Your <br className="hidden sm:inline" />
-              <span className="text-gold-gradient italic font-normal">Aura.</span>
+              Choose Your <br className="hidden sm:inline" />
+              <span className="text-gold-gradient italic font-normal">Way.</span>
             </h1>
 
             <p className="text-base sm:text-lg text-stone-muted max-w-md font-light leading-relaxed">

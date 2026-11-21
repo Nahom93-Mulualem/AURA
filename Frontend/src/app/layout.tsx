@@ -6,17 +6,18 @@ import Footer from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "Aura by HANI | Luxury Fragrances & Perfume Boutique",
   description:
-    "Wear your aura. Artisanal perfumes and bespoke scents crafted by HANI. Browse exclusive fragrances and contact directly via Telegram or Instagram.",
+    "Choose your way. Artisanal perfumes and bespoke scents crafted by HANI. Browse exclusive fragrances and contact directly via Telegram, WhatsApp, or Instagram.",
   keywords: [
     "Aura by HANI",
     "luxury perfume",
     "oud perfume",
     "boutique fragrance",
-    "bespoke scents",
+    "bespoke scents Ethiopia",
+    "Addis Ababa perfume",
   ],
   openGraph: {
     title: "Aura by HANI | Luxury Fragrances",
-    description: "Wear your aura. Scents that stay in memory.",
+    description: "Choose your way. Scents that stay in memory.",
     type: "website",
     locale: "en_US",
   },

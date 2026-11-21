@@ -10,7 +10,9 @@ import {
   Sparkles,
   ArrowUp,
   Heart,
+  Shield,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
 export default function Footer() {
@@ -34,10 +36,10 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-stone-muted text-sm leading-relaxed max-w-sm">
-              Artisanal, luxury boutique fragrances crafted to awaken emotion and leave an unforgettable personal aura.
+              Artisanal, luxury boutique fragrances crafted to awaken emotion and leave an unforgettable personal presence. Based in Addis Ababa, Ethiopia.
             </p>
             <div className="inline-block px-3 py-1 rounded-full bg-midnight/60 border border-gold/20 text-[11px] text-gold tracking-widest uppercase">
-              100% Authentic Stock
+              100% Authentic Stock • Ethiopian Birr
             </div>
           </div>
 
@@ -64,7 +66,16 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/contact" className="hover:text-gold transition-colors">
-                  Direct Inquiries & FAQ
+                  Contact Channels & FAQ
+                </Link>
+              </li>
+              <li className="pt-2 border-t border-midnight/60">
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 text-xs text-stone-muted hover:text-gold transition-colors"
+                >
+                  <Shield className="w-3.5 h-3.5 text-gold/60" />
+                  <span>Admin Studio Portal</span>
                 </Link>
               </li>
             </ul>
@@ -87,6 +98,17 @@ export default function Footer() {
               </li>
               <li>
                 <a
+                  href={BRAND_CONTACT.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-sage transition-colors"
+                >
+                  <WhatsAppIcon className="w-4 h-4 text-sage" />
+                  <span>WhatsApp Chat</span>
+                </a>
+              </li>
+              <li>
+                <a
                   href={`mailto:${BRAND_CONTACT.email}`}
                   className="flex items-center gap-2 hover:text-gold transition-colors"
                 >
@@ -95,7 +117,7 @@ export default function Footer() {
                 </a>
               </li>
               <li className="text-xs text-stone-muted pt-1">
-                Typical reply time: within 1–2 hours
+                Location: {BRAND_CONTACT.location}
               </li>
             </ul>
           </div>
@@ -105,7 +127,7 @@ export default function Footer() {
             <h4 className="text-xs uppercase tracking-[0.2em] text-gold font-medium">
               Connect Directly
             </h4>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <a
                 href={BRAND_CONTACT.telegram}
                 target="_blank"
@@ -116,11 +138,20 @@ export default function Footer() {
                 <Send className="w-4 h-4" />
               </a>
               <a
+                href={BRAND_CONTACT.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="w-10 h-10 rounded-full bg-midnight border border-sage/40 flex items-center justify-center text-sage hover:border-sage hover:scale-105 transition-all shadow-glow"
+              >
+                <WhatsAppIcon className="w-4 h-4" />
+              </a>
+              <a
                 href={BRAND_CONTACT.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-10 h-10 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
+                className="w-10 h-10 rounded-full bg-midnight border border-rose-dust/40 flex items-center justify-center text-softwhite hover:border-rose-dust hover:text-rose-dust hover:scale-105 transition-all shadow-glow"
               >
                 <Instagram className="w-4 h-4" />
               </a>
@@ -138,7 +169,7 @@ export default function Footer() {
                 New Arrivals on Telegram
               </p>
               <p className="text-[11px] text-stone-muted mb-2">
-                Join our private VIP channel for exclusive releases.
+                Join our private VIP channel for exclusive releases & prices.
               </p>
               <a
                 href={BRAND_CONTACT.telegram}
@@ -146,7 +177,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="block text-center text-xs py-1.5 px-3 rounded-full bg-gold/15 border border-gold/40 text-gold hover:bg-gold hover:text-midnight transition-colors"
               >
-                Join Channel
+                Join VIP Channel
               </a>
             </div>
           </div>

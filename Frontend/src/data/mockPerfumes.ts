@@ -9,7 +9,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     tagline: "Scents that stay in memory.",
     description:
       "A majestic evening blend that weaves smoky Cambodian oud with velvety Madagascan vanilla and molten golden amber. Designed for unforgettable entrances and lingering warmth.",
-    price: 145,
+    price: 12500,
     sizeMl: 100,
     category: "unisex",
     status: "new",
@@ -36,7 +36,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     tagline: "Wear your delicate aura.",
     description:
       "Dew-kissed petals harvested at daybreak in Grasse. An ethereal dance of fresh pink peppercorn, luminous morning rose, and cloud-soft white cashmere musk.",
-    price: 130,
+    price: 9800,
     sizeMl: 75,
     category: "feminine",
     status: "available",
@@ -63,7 +63,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     tagline: "An intoxicating golden mystery.",
     description:
       "Inspired by secret nocturnal rendezvous. Rich cured tobacco leaves submerged in raw golden honey, spiked with bittersweet cocoa and spiced tonka bean.",
-    price: 160,
+    price: 14200,
     sizeMl: 100,
     category: "unisex",
     status: "available",
@@ -90,7 +90,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     tagline: "Quiet confidence bottled.",
     description:
       "A soothing second skin of creamy Mysore-style sandalwood accompanied by buttery Florentine iris and aromatic green cardamom seeds.",
-    price: 125,
+    price: 8500,
     sizeMl: 50,
     category: "unisex",
     status: "sold_out",
@@ -116,7 +116,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     tagline: "Golden warmth under the sun.",
     description:
       "Liquid sunshine. Luminous ylang-ylang and sun-drenched Tahitian gardenia swimming in crystalline coconut nectar and salted driftwood.",
-    price: 115,
+    price: 8900,
     sizeMl: 75,
     category: "feminine",
     status: "available",
@@ -142,7 +142,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     tagline: "Bold, enigmatic, magnetic.",
     description:
       "Supple Italian leather ignited by tart wild black raspberry and herbal sun-dried thyme. Seductive, dark, and utterly intoxicating.",
-    price: 155,
+    price: 13500,
     sizeMl: 100,
     category: "masculine",
     status: "available",
@@ -165,15 +165,17 @@ export const MOCK_PERFUMES: Perfume[] = [
 export const BRAND_CONTACT = {
   name: "HANI",
   brandName: "Aura by HANI",
-  tagline: "Wear your aura. Scents that stay in memory.",
+  tagline: "Choose your way. Scents that stay in memory.",
   telegram: "https://t.me/aurabyhani",
   telegramHandle: "@aurabyhani",
   instagram: "https://instagram.com/aurabyhani",
   instagramHandle: "@aurabyhani",
   tiktok: "https://tiktok.com/@aurabyhani",
   tiktokHandle: "@aurabyhani",
+  whatsapp: "https://wa.me/251911234567",
+  whatsappHandle: "+251 91 123 4567",
   email: "aurabyhani@gmail.com",
-  phone: "+1 (555) 287-2968",
-  phoneDisplay: "+1 (555) AURA-YOU",
-  location: "Boutique Fragrance Studio",
+  phone: "+251911234567",
+  phoneDisplay: "+251 91 123 4567",
+  location: "Addis Ababa, Ethiopia",
 };

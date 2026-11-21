@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Sparkles, Send, Instagram } from "lucide-react";
+import { Menu, X, Sparkles, Send, Instagram, Shield } from "lucide-react";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
 const NAV_LINKS = [
@@ -91,12 +92,21 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop Direct Contact CTA */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <a
+              href={BRAND_CONTACT.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Chat on WhatsApp"
+              className="w-9 h-9 rounded-full border border-sage/40 flex items-center justify-center text-sage hover:bg-sage/10 transition-colors"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
+            </a>
             <a
               href={BRAND_CONTACT.telegram}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gold/40 text-xs uppercase tracking-wider text-softwhite hover:border-gold hover:bg-gold/10 hover:text-gold transition-all duration-300"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gold/40 text-xs uppercase tracking-wider text-softwhite hover:border-gold hover:bg-gold/10 hover:text-gold transition-all duration-300 shadow-sm"
             >
               <Send className="w-3.5 h-3.5 text-gold" />
               <span>Contact HANI</span>
@@ -141,6 +151,14 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            <Link
+              href="/admin"
+              className="text-sm font-serif tracking-wide text-stone-muted hover:text-gold flex items-center gap-2 pt-2"
+            >
+              <Shield className="w-4 h-4 text-gold/60" />
+              <span>Admin Studio Portal</span>
+            </Link>
           </div>
 
           {/* Mobile Social & Direct Actions */}
@@ -148,28 +166,37 @@ export default function Navbar() {
             <p className="text-xs text-stone-muted tracking-wider uppercase">
               Direct Inquiries & Orders
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <a
                 href={BRAND_CONTACT.telegram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-plum border border-gold/30 text-xs font-medium text-softwhite active:bg-gold/20"
+                className="flex items-center justify-center gap-1.5 py-3 px-2 rounded-full bg-plum border border-gold/30 text-xs font-medium text-softwhite active:bg-gold/20"
               >
-                <Send className="w-4 h-4 text-gold" />
+                <Send className="w-3.5 h-3.5 text-gold" />
                 <span>Telegram</span>
+              </a>
+              <a
+                href={BRAND_CONTACT.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 py-3 px-2 rounded-full bg-plum border border-sage/40 text-xs font-medium text-softwhite active:bg-sage/20"
+              >
+                <WhatsAppIcon className="w-3.5 h-3.5 text-sage" />
+                <span>WhatsApp</span>
               </a>
               <a
                 href={BRAND_CONTACT.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-plum border border-rose-dust/30 text-xs font-medium text-softwhite active:bg-rose-dust/20"
+                className="flex items-center justify-center gap-1.5 py-3 px-2 rounded-full bg-plum border border-rose-dust/30 text-xs font-medium text-softwhite active:bg-rose-dust/20"
               >
-                <Instagram className="w-4 h-4 text-rose-dust" />
-                <span>Instagram</span>
+                <Instagram className="w-3.5 h-3.5 text-rose-dust" />
+                <span>Insta</span>
               </a>
             </div>
             <p className="text-center text-xs text-stone-muted pt-2">
-              Boutique Perfumery by {BRAND_CONTACT.name}
+              Boutique Perfumery by {BRAND_CONTACT.name} • Addis Ababa
             </p>
           </div>
         </div>

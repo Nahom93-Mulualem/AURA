@@ -4,13 +4,11 @@ import Link from "next/link";
 import {
   Send,
   Instagram,
-  Phone,
-  Sparkles,
-  ShieldCheck,
   Clock,
   ArrowLeft,
   Calendar,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { MOCK_PERFUMES, BRAND_CONTACT } from "@/data/mockPerfumes";
 import { formatPrice } from "@/lib/utils";
 import PerfumeGallery from "@/components/perfume/PerfumeGallery";
@@ -46,6 +44,7 @@ export default async function PerfumeDetailPage({ params }: PageProps) {
   );
 
   const telegramUrl = `${BRAND_CONTACT.telegram}?text=${orderMessage}`;
+  const whatsappUrl = `${BRAND_CONTACT.whatsapp}?text=${orderMessage}`;
   const isAvailable = perfume.status !== "sold_out";
 
   return (
@@ -91,7 +90,7 @@ export default async function PerfumeDetailPage({ params }: PageProps) {
           <div className="flex items-center justify-between p-4 rounded-xl bg-plum/50 border border-gold/15">
             <div>
               <span className="text-[11px] text-stone-muted uppercase tracking-wider block">
-                Price
+                Estimated Price (ETB)
               </span>
               <span className="font-mono text-2xl sm:text-3xl font-medium text-gold">
                 {formatPrice(perfume.price)}
@@ -153,30 +152,40 @@ export default async function PerfumeDetailPage({ params }: PageProps) {
             <span className="text-xs uppercase tracking-widest text-gold font-medium block">
               Contact HANI to Order
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <a
                 href={telegramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[48px] px-6 rounded-full bg-gold hover:bg-gold-light text-midnight font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 shadow-glow transition-all"
+                className="min-h-[48px] px-4 rounded-full bg-gold hover:bg-gold-light text-midnight font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 shadow-glow transition-all"
               >
                 <Send className="w-4 h-4 fill-midnight" />
-                <span>Order on Telegram</span>
+                <span>Telegram</span>
+              </a>
+
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[48px] px-4 rounded-full bg-plum border border-sage/40 hover:border-sage text-softwhite hover:text-sage font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm"
+              >
+                <WhatsAppIcon className="w-4 h-4 text-sage" />
+                <span>WhatsApp</span>
               </a>
 
               <a
                 href={BRAND_CONTACT.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[48px] px-6 rounded-full bg-plum border border-rose-dust/40 hover:border-rose-dust text-softwhite hover:text-rose-dust font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all"
+                className="min-h-[48px] px-4 rounded-full bg-plum border border-rose-dust/40 hover:border-rose-dust text-softwhite hover:text-rose-dust font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all"
               >
                 <Instagram className="w-4 h-4 text-rose-dust" />
-                <span>Inquire on Instagram</span>
+                <span>Instagram</span>
               </a>
             </div>
 
             <p className="text-[11px] text-stone-muted text-center pt-1">
-              Personal consultation & custom shipping coordinated directly with HANI.
+              Direct personal consultation & local courier delivery coordinated in Addis Ababa.
             </p>
           </div>
         </div>

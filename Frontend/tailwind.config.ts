@@ -9,21 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        midnight: "#0E0B10",
-        plum: "#1A141F",
+        midnight: "rgba(var(--theme-bg-midnight), <alpha-value>)",
+        plum: "rgba(var(--theme-bg-plum), <alpha-value>)",
         ivory: "#FAF6F0",
         gold: {
-          DEFAULT: "#C9A66B",
-          light: "#DFBF8B",
-          dark: "#A7844A",
+          DEFAULT: "rgba(var(--theme-gold), <alpha-value>)",
+          light: "rgba(var(--theme-gold-light), <alpha-value>)",
+          dark: "rgba(var(--theme-gold-dark), <alpha-value>)",
         },
         rose: {
           dust: "#D9A5A0",
         },
-        softwhite: "#F3EDE4",
+        softwhite: "rgba(var(--theme-text-softwhite), <alpha-value>)",
         charcoal: "#1D1A1F",
         stone: {
-          muted: "#8C8590",
+          muted: "rgba(var(--theme-text-muted), <alpha-value>)",
         },
         sage: "#7FA68A",
         clay: "#B5655C",

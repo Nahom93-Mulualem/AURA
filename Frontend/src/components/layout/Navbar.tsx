@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Sparkles, Send, Instagram, Shield } from "lucide-react";
+import { Menu, X, Send, Instagram, Shield } from "lucide-react";
+import AuraLogo from "@/components/ui/AuraLogo";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
@@ -54,15 +56,15 @@ export default function Navbar() {
           {/* Brand Logo */}
           <Link
             href="/"
-            className="group flex items-center gap-2 text-left"
+            className="group flex items-center gap-2.5 text-left"
             aria-label="Aura by HANI Home"
           >
-            <Sparkles className="w-5 h-5 text-gold transition-transform group-hover:rotate-12 duration-300" />
+            <AuraLogo size="md" showGlow />
             <div>
               <span className="block font-serif text-lg sm:text-xl tracking-wider text-softwhite group-hover:text-gold transition-colors">
                 AURA
               </span>
-              <span className="block text-[10px] tracking-[0.25em] text-gold uppercase -mt-1">
+              <span className="block text-[10px] tracking-[0.25em] text-gold uppercase -mt-1 font-sans">
                 by HANI
               </span>
             </div>
@@ -91,17 +93,9 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Desktop Direct Contact CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <a
-              href={BRAND_CONTACT.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Chat on WhatsApp"
-              className="w-9 h-9 rounded-full border border-sage/40 flex items-center justify-center text-sage hover:bg-sage/10 transition-colors"
-            >
-              <WhatsAppIcon className="w-4 h-4" />
-            </a>
+          {/* Desktop Direct Contact CTA & Theme Toggle */}
+          <div className="hidden md:flex items-center gap-4">
+            <ThemeToggle />
             <a
               href={BRAND_CONTACT.telegram}
               target="_blank"
@@ -113,15 +107,18 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* Mobile Hamburger Toggle Button (min 44x44px target) */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-11 h-11 flex items-center justify-center rounded-full text-softwhite hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Right Controls: Theme Toggle & Hamburger (min 44x44px target) */}
+          <div className="flex md:hidden items-center gap-3">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="w-11 h-11 flex items-center justify-center rounded-full text-softwhite hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </header>
 

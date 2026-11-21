@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import TikTokIcon from "@/components/ui/TikTokIcon";
+import AuraLogo from "@/components/ui/AuraLogo";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 
 export default function Footer() {
@@ -30,8 +31,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Column 1: Brand Info */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold" />
+            <div className="flex items-center gap-3">
+              <AuraLogo size="md" showGlow />
               <span className="font-serif text-xl tracking-wider text-softwhite">
                 AURA <span className="text-gold text-xs font-sans tracking-widest uppercase">by HANI</span>
               </span>

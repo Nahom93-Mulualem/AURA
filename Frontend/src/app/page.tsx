@@ -11,6 +11,7 @@ import {
   Heart,
   ChevronDown,
 } from "lucide-react";
+import AuraLogo from "@/components/ui/AuraLogo";
 import { MOCK_PERFUMES, BRAND_CONTACT } from "@/data/mockPerfumes";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
 
@@ -29,9 +30,9 @@ export default function HomePage() {
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           {/* Left Column: Headlines & CTA (mobile-first stacked) */}
           <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-plum border border-gold/30 text-gold text-xs tracking-[0.2em] uppercase">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Aura by HANI</span>
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-plum/80 border border-gold/40 text-gold text-xs tracking-[0.2em] uppercase shadow-glow">
+              <AuraLogo size="sm" showGlow={false} className="w-5 h-5" />
+              <span className="font-medium">Aura by HANI</span>
             </div>
 
             <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-softwhite leading-[1.1]">

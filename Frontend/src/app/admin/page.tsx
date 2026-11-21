@@ -39,7 +39,8 @@ export default function AdminPage() {
   const [name, setName] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [priceEtb, setPriceEtb] = useState("");
-  const [sizeMl, setSizeMl] = useState("100");
+  const [sizePreset, setSizePreset] = useState("100");
+  const [customSizeText, setCustomSizeText] = useState("100ml");
   const [status, setStatus] = useState<PerfumeStatus>("available");
   const [category, setCategory] = useState<PerfumeCategory>("unisex");
   const [topNotes, setTopNotes] = useState("");
@@ -103,7 +104,7 @@ export default function AdminPage() {
       tagline: "Scents that stay in memory.",
       description: `Bespoke artisanal fragrance with notes of ${topNotes || "precious woods and florals"}.`,
       price: Number(priceEtb),
-      sizeMl: Number(sizeMl) || 100,
+      sizeMl: customSizeText.trim() || `${sizePreset}ml`,
       category: category,
       status: status,
       featured: true,
@@ -128,7 +129,8 @@ export default function AdminPage() {
     setName("");
     setSubtitle("");
     setPriceEtb("");
-    setSizeMl("100");
+    setSizePreset("100");
+    setCustomSizeText("100ml");
     setStatus("available");
     setCategory("unisex");
     setTopNotes("");
@@ -230,7 +232,9 @@ export default function AdminPage() {
                       </p>
                     </div>
                   </td>
-                  <td className="py-3 px-4 font-mono">{item.sizeMl}ml</td>
+                  <td className="py-3 px-4 font-mono">
+                    {String(item.sizeMl).includes("ml") ? item.sizeMl : `${item.sizeMl}ml`}
+                  </td>
                   <td className="py-3 px-4 font-mono text-gold font-medium">
                     {formatPrice(item.price)}
                   </td>
@@ -296,7 +300,7 @@ export default function AdminPage() {
                     {item.name}
                   </h4>
                   <span className="font-mono text-xs text-gold font-semibold block">
-                    {formatPrice(item.price)} ({item.sizeMl}ml)
+                    {formatPrice(item.price)} ({String(item.sizeMl).includes("ml") ? item.sizeMl : `${item.sizeMl}ml`})
                   </span>
                   <button
                     onClick={() => toggleStatus(item.id)}
@@ -389,20 +393,44 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Size (ml) *
-                  </label>
-                  <select
-                    value={sizeMl}
-                    onChange={(e) => setSizeMl(e.target.value)}
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  >
-                    <option value="30">30 ml (Travel Extrait)</option>
-                    <option value="50">50 ml (Classic Flask)</option>
-                    <option value="75">75 ml (Signature)</option>
-                    <option value="100">100 ml (Grand Flacon)</option>
-                    <option value="120">120 ml (Artisanal Reserve)</option>
-                  </select>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-gold font-medium">
+                      Bottle Size *
+                    </label>
+                    <span className="text-[10px] text-stone-muted">
+                      Select or type custom
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {/* Size Preset Dropdown */}
+                    <select
+                      value={sizePreset}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSizePreset(val);
+                        if (val !== "custom") {
+                          setCustomSizeText(`${val}ml`);
+                        }
+                      }}
+                      className="w-full p-2 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none text-xs"
+                    >
+                      <option value="30">30 ml (Travel Extrait)</option>
+                      <option value="50">50 ml (Classic Flask)</option>
+                      <option value="75">75 ml (Signature)</option>
+                      <option value="100">100 ml (Grand Flacon)</option>
+                      <option value="120">120 ml (Artisanal Reserve)</option>
+                      <option value="custom">✏️ Custom size / volume...</option>
+                    </select>
+
+                    {/* Freeform text field allowing the user to write whatever they want */}
+                    <input
+                      type="text"
+                      value={customSizeText}
+                      onChange={(e) => setCustomSizeText(e.target.value)}
+                      placeholder="e.g. 100ml, 50ml Pure Oil, 250ml Decanter..."
+                      className="w-full p-2 rounded-lg bg-midnight/90 border border-gold/30 text-softwhite placeholder:text-stone-muted text-xs focus:border-gold focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 

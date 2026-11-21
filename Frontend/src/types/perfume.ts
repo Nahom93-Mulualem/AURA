@@ -15,7 +15,7 @@ export interface Perfume {
   tagline: string;
   description: string;
   price: number;
-  sizeMl: number;
+  sizeMl: number | string;
   category: PerfumeCategory;
   status: PerfumeStatus;
   featured: boolean;

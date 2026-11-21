@@ -46,11 +46,10 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-midnight/90 backdrop-blur-md border-b border-gold/15 py-3 shadow-glow"
-            : "bg-transparent py-5"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+          ? "bg-midnight/90 backdrop-blur-md border-b border-gold/15 py-3 shadow-glow"
+          : "bg-transparent py-5"
+          }`}
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex items-center justify-between">
           {/* Brand Logo */}
@@ -78,11 +77,10 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`relative text-sm tracking-wide transition-colors py-1 ${
-                    isActive
-                      ? "text-gold font-medium"
-                      : "text-softwhite/80 hover:text-gold"
-                  }`}
+                  className={`relative text-sm tracking-wide transition-colors py-1 ${isActive
+                    ? "text-gold font-medium"
+                    : "text-softwhite/80 hover:text-gold"
+                    }`}
                 >
                   {link.name}
                   {isActive && (
@@ -93,9 +91,8 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Desktop Direct Contact CTA & Theme Toggle */}
+          {/* Desktop Direct Contact CTA & Theme Toggle (ThemeToggle at the far right corner) */}
           <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle />
             <a
               href={BRAND_CONTACT.telegram}
               target="_blank"
@@ -105,6 +102,7 @@ export default function Navbar() {
               <Send className="w-3.5 h-3.5 text-gold" />
               <span>Contact HANI</span>
             </a>
+            <ThemeToggle />
           </div>
 
           {/* Mobile Right Controls: Theme Toggle & Hamburger (min 44x44px target) */}
@@ -139,9 +137,8 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-2xl font-serif tracking-wide py-2 border-b border-plum/80 flex items-center justify-between ${
-                    isActive ? "text-gold font-medium" : "text-softwhite"
-                  }`}
+                  className={`text-2xl font-serif tracking-wide py-2 border-b border-plum/80 flex items-center justify-between ${isActive ? "text-gold font-medium" : "text-softwhite"
+                    }`}
                 >
                   <span>{link.name}</span>
                   {isActive && <span className="w-2 h-2 rounded-full bg-gold" />}

@@ -202,7 +202,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-5 rounded-lg bg-plum/50 border border-gold/10 flex flex-col justify-between">
               <p className="text-xs sm:text-sm italic text-softwhite/90 leading-relaxed mb-4">
-                &ldquo;Oud Royale is truly exceptional. Finding long-lasting, original niche perfume in Addis Ababa used to be such a gamble. HANI delivered it to Bole within hours, and the scent stays on all day through evening dinners.&rdquo;
+                &ldquo;AURA is truly exceptional. Finding long-lasting, original niche perfume in Addis Ababa used to be such a gamble. HANI delivered it to Bole within hours, and the scent stays on all day through evening dinners.&rdquo;
               </p>
               <div>
                 <span className="text-xs font-medium text-gold block">Selamawit T.</span>
@@ -212,7 +212,7 @@ export default function HomePage() {
 
             <div className="p-5 rounded-lg bg-plum/50 border border-gold/10 flex flex-col justify-between">
               <p className="text-xs sm:text-sm italic text-softwhite/90 leading-relaxed mb-4">
-                &ldquo;I reached out to HANI on Instagram for a special anniversary gift. Her advice was so thoughtful, and paying with Telebirr made it effortless. My wife was completely enchanted by Nuit Dorée.&rdquo;
+                &ldquo;I reached out to HANI on Instagram for a special anniversary gift. Her advice was so thoughtful, and paying with Telebirr made it effortless. My wife was completely enchanted by AURA.&rdquo;
               </p>
               <div>
                 <span className="text-xs font-medium text-gold block">Yonas B.</span>
@@ -222,7 +222,7 @@ export default function HomePage() {
 
             <div className="p-5 rounded-lg bg-plum/50 border border-gold/10 flex flex-col justify-between">
               <p className="text-xs sm:text-sm italic text-softwhite/90 leading-relaxed mb-4">
-                &ldquo;I was skeptical about regional courier delivery outside Addis, but my package arrived in Hawassa in 2 days, securely bubble-wrapped with verified batch codes. Aura is now my only fragrance boutique.&rdquo;
+                &ldquo;I was skeptical about regional courier delivery outside Addis, but my package arrived in Hawassa in 2 days, securely bubble-wrapped. Aura is now my only fragrance boutique.&rdquo;
               </p>
               <div>
                 <span className="text-xs font-medium text-gold block">Hermela D.</span>

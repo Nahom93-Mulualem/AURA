@@ -5,14 +5,16 @@ import { Search, Sparkles, Filter, X } from "lucide-react";
 import { MOCK_PERFUMES } from "@/data/mockPerfumes";
 import { PerfumeCategory } from "@/types/perfume";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
+import { usePerfumesCatalog } from "@/lib/perfumeStore";
 
 export default function CollectionPage() {
+  const perfumes = usePerfumesCatalog(MOCK_PERFUMES);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<PerfumeCategory | "all">("all");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   const filteredPerfumes = useMemo(() => {
-    return MOCK_PERFUMES.filter((perfume) => {
+    return perfumes.filter((perfume) => {
       // Category filter
       if (selectedCategory !== "all" && perfume.category !== selectedCategory) {
         return false;

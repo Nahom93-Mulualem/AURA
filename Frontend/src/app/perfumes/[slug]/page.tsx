@@ -15,6 +15,7 @@ import PerfumeGallery from "@/components/perfume/PerfumeGallery";
 import NotesPyramid from "@/components/perfume/NotesPyramid";
 import StickyOrderBar from "@/components/perfume/StickyOrderBar";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
+import TrustBadges from "@/components/ui/TrustBadges";
 
 export function generateStaticParams() {
   return MOCK_PERFUMES.map((perfume) => ({
@@ -188,6 +189,9 @@ export default async function PerfumeDetailPage({ params }: PageProps) {
               Direct personal consultation & local courier delivery coordinated in Addis Ababa.
             </p>
           </div>
+
+          {/* Boutique Trust Guarantees */}
+          <TrustBadges variant="compact" className="mt-4" />
         </div>
       </div>
 

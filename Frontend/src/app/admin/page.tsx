@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -20,6 +20,11 @@ import {
 import { MOCK_PERFUMES } from "@/data/mockPerfumes";
 import { Perfume, PerfumeCategory, PerfumeStatus } from "@/types/perfume";
 import { formatPrice } from "@/lib/utils";
+import {
+  getStoredPerfumes,
+  updatePerfumeStatusInStore,
+  addPerfumeToStore,
+} from "@/lib/perfumeStore";
 
 const ALLOWED_MIME_TYPES = [
   "image/jpeg",
@@ -34,6 +39,7 @@ export default function AdminPage() {
   const [perfumes, setPerfumes] = useState<Perfume[]>(MOCK_PERFUMES);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState("");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // New Fragrance Form State
   const [name, setName] = useState("");
@@ -50,16 +56,19 @@ export default function AdminPage() {
   const [imageFileName, setImageFileName] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const toggleStatus = (id: string) => {
-    setPerfumes((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const nextStatus = item.status === "available" ? "sold_out" : "available";
-          return { ...item, status: nextStatus };
-        }
-        return item;
-      })
-    );
+  useEffect(() => {
+    setPerfumes(getStoredPerfumes());
+  }, []);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleStatusChange = async (id: string, name: string, nextStatus: PerfumeStatus) => {
+    const updated = await updatePerfumeStatusInStore(id, nextStatus);
+    setPerfumes(updated);
+    showToast(`✓ Updated ${name} availability to ${nextStatus.replace("_", " ").toUpperCase()}`);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,8 +131,10 @@ export default function AdminPage() {
       rating: 5.0,
     };
 
-    setPerfumes([newPerfume, ...perfumes]);
+    const updated = addPerfumeToStore(newPerfume);
+    setPerfumes(updated);
     setShowAddModal(false);
+    showToast(`✓ Published ${newPerfume.name} to the boutique catalog!`);
 
     // Reset Form
     setName("");
@@ -147,6 +158,14 @@ export default function AdminPage() {
 
   return (
     <div className="pt-28 pb-20 max-w-[1200px] mx-auto px-4 sm:px-6">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-24 right-6 z-50 px-5 py-3 rounded-xl bg-midnight border border-gold/40 text-gold shadow-glow flex items-center gap-2.5 text-xs animate-in slide-in-from-top duration-300">
+          <CheckCircle2 className="w-4 h-4 text-sage" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-gold/20">
         <div>
@@ -239,19 +258,34 @@ export default function AdminPage() {
                     {formatPrice(item.price)}
                   </td>
                   <td className="py-3 px-4">
-                    <button
-                      onClick={() => toggleStatus(item.id)}
-                      className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-semibold tracking-wider transition-all ${
+                    <select
+                      value={item.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          item.id,
+                          item.name,
+                          e.target.value as PerfumeStatus
+                        )
+                      }
+                      className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-semibold tracking-wider transition-all cursor-pointer focus:outline-none focus:ring-1 focus:ring-gold ${
                         item.status === "available"
                           ? "bg-sage/20 text-sage border border-sage/40"
                           : item.status === "new"
                           ? "bg-gold/20 text-gold border border-gold/40"
                           : "bg-clay/20 text-clay border border-clay/40"
                       }`}
-                      title="Click to toggle availability"
+                      title="Select availability status"
                     >
-                      {item.status.replace("_", " ")}
-                    </button>
+                      <option value="available" className="bg-midnight text-sage">
+                        Available
+                      </option>
+                      <option value="new" className="bg-midnight text-gold">
+                        New Arrival
+                      </option>
+                      <option value="sold_out" className="bg-midnight text-clay">
+                        Sold Out
+                      </option>
+                    </select>
                   </td>
                   <td className="py-3 px-4 capitalize text-stone-muted">
                     {item.category}
@@ -302,12 +336,33 @@ export default function AdminPage() {
                   <span className="font-mono text-xs text-gold font-semibold block">
                     {formatPrice(item.price)} ({String(item.sizeMl).includes("ml") ? item.sizeMl : `${item.sizeMl}ml`})
                   </span>
-                  <button
-                    onClick={() => toggleStatus(item.id)}
-                    className="text-[10px] uppercase tracking-wider text-stone-muted underline mt-1"
+                  <select
+                    value={item.status}
+                    onChange={(e) =>
+                      handleStatusChange(
+                        item.id,
+                        item.name,
+                        e.target.value as PerfumeStatus
+                      )
+                    }
+                    className={`mt-1.5 px-2 py-0.5 rounded-full text-[9px] uppercase font-semibold tracking-wider transition-all cursor-pointer focus:outline-none ${
+                      item.status === "available"
+                        ? "bg-sage/20 text-sage border border-sage/40"
+                        : item.status === "new"
+                        ? "bg-gold/20 text-gold border border-gold/40"
+                        : "bg-clay/20 text-clay border border-clay/40"
+                    }`}
                   >
-                    Toggle: {item.status}
-                  </button>
+                    <option value="available" className="bg-midnight text-sage">
+                      Available
+                    </option>
+                    <option value="new" className="bg-midnight text-gold">
+                      New Arrival
+                    </option>
+                    <option value="sold_out" className="bg-midnight text-clay">
+                      Sold Out
+                    </option>
+                  </select>
                 </div>
               </div>
 

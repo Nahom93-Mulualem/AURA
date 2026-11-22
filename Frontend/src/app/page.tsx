@@ -14,9 +14,10 @@ import {
 import AuraLogo from "@/components/ui/AuraLogo";
 import { MOCK_PERFUMES, BRAND_CONTACT } from "@/data/mockPerfumes";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
+import FeaturedFragrances from "@/components/perfume/FeaturedFragrances";
+import TrustBadges from "@/components/ui/TrustBadges";
 
 export default function HomePage() {
-  const featuredPerfumes = MOCK_PERFUMES.filter((p) => p.featured);
   const heroPerfume = MOCK_PERFUMES[0];
 
   return (
@@ -111,32 +112,7 @@ export default function HomePage() {
       </section>
 
       {/* 2. FEATURED PERFUMES */}
-      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 pb-4 border-b border-gold/15">
-          <div>
-            <span className="text-xs uppercase tracking-[0.2em] text-gold font-medium block mb-1">
-              Curated Selections
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-softwhite">
-              Featured Fragrances
-            </h2>
-          </div>
-          <Link
-            href="/collection"
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:text-gold-light transition-colors"
-          >
-            <span>View All ({MOCK_PERFUMES.length})</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* Grid: 1 col on 375px mobile, 2 on tablet, 4 on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredPerfumes.map((perfume, idx) => (
-            <PerfumeCard key={perfume.id} perfume={perfume} priority={idx < 2} />
-          ))}
-        </div>
-      </section>
+      <FeaturedFragrances />
 
       {/* 3. BRAND STORY TEASER */}
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
@@ -209,6 +185,11 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* 4.5 BOUTIQUE GUARANTEES & TRUST */}
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
+        <TrustBadges variant="full" />
       </section>
 
       {/* 5. TESTIMONIALS */}

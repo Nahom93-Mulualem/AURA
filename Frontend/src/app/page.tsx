@@ -31,11 +31,6 @@ export default function HomePage() {
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           {/* Left Column: Headlines & CTA (mobile-first stacked) */}
           <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 z-10">
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-plum/80 border border-gold/40 text-gold text-xs tracking-[0.2em] uppercase shadow-glow">
-              <AuraLogo size="sm" showGlow={false} className="w-5 h-5" />
-              <span className="font-medium">Aura by HANI</span>
-            </div>
-
             <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-softwhite leading-[1.1]">
               Choose Your <br className="hidden sm:inline" />
               <span className="text-gold-gradient italic font-normal">Way.</span>
@@ -207,31 +202,31 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-5 rounded-lg bg-plum/50 border border-gold/10 flex flex-col justify-between">
               <p className="text-xs sm:text-sm italic text-softwhite/90 leading-relaxed mb-4">
-                &ldquo;Oud Royale is hands down the best perfume I have ever purchased. I receive compliments every single day at work.&rdquo;
+                &ldquo;Oud Royale is truly exceptional. Finding long-lasting, original niche perfume in Addis Ababa used to be such a gamble. HANI delivered it to Bole within hours, and the scent stays on all day through evening dinners.&rdquo;
               </p>
               <div>
-                <span className="text-xs font-medium text-gold block">Sarah K.</span>
-                <span className="text-[10px] text-stone-muted">Verified Telegram Buyer</span>
+                <span className="text-xs font-medium text-gold block">Selamawit T.</span>
+                <span className="text-[10px] text-stone-muted">Bole, Addis Ababa • Verified Telegram Client</span>
               </div>
             </div>
 
             <div className="p-5 rounded-lg bg-plum/50 border border-gold/10 flex flex-col justify-between">
               <p className="text-xs sm:text-sm italic text-softwhite/90 leading-relaxed mb-4">
-                &ldquo;HANI spent 20 minutes helping me choose a gift for my fiancé on Instagram. Her recommendation of Nuit Dorée was perfection.&rdquo;
+                &ldquo;I reached out to HANI on Instagram for a special anniversary gift. Her advice was so thoughtful, and paying with Telebirr made it effortless. My wife was completely enchanted by Nuit Dorée.&rdquo;
               </p>
               <div>
-                <span className="text-xs font-medium text-gold block">David M.</span>
-                <span className="text-[10px] text-stone-muted">Instagram Client</span>
+                <span className="text-xs font-medium text-gold block">Yonas B.</span>
+                <span className="text-[10px] text-stone-muted">Kazanchis, Addis Ababa • Instagram Client</span>
               </div>
             </div>
 
             <div className="p-5 rounded-lg bg-plum/50 border border-gold/10 flex flex-col justify-between">
               <p className="text-xs sm:text-sm italic text-softwhite/90 leading-relaxed mb-4">
-                &ldquo;The longevity is unreal. Even after washing my coat, the scent of Rose Éthérée still carried a soft glowing warmth.&rdquo;
+                &ldquo;I was skeptical about regional courier delivery outside Addis, but my package arrived in Hawassa in 2 days, securely bubble-wrapped with verified batch codes. Aura is now my only fragrance boutique.&rdquo;
               </p>
               <div>
-                <span className="text-xs font-medium text-gold block">Elena R.</span>
-                <span className="text-[10px] text-stone-muted">Repeat Customer</span>
+                <span className="text-xs font-medium text-gold block">Hermela D.</span>
+                <span className="text-[10px] text-stone-muted">Hawassa • Repeat Customer</span>
               </div>
             </div>
           </div>

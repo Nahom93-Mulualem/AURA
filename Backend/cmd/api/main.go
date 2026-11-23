@@ -81,12 +81,16 @@ func main() {
 
 		// Admin Authentication
 		r.Post("/admin/login", authHandler.Login)
+		r.Post("/admin/logout", authHandler.Logout)
 
-		// Protected Admin Routes (Requires valid JWT Bearer Token)
+		// Protected Admin Routes (Requires valid JWT Bearer Token or Session Cookie)
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.RequireAuth(authService))
 
+			r.Get("/admin/me", authHandler.Me)
 			r.Post("/perfumes", perfumeHandler.CreatePerfume)
+			r.Put("/perfumes/{id}", perfumeHandler.UpdatePerfume)
+			r.Delete("/perfumes/{id}", perfumeHandler.DeletePerfume)
 			r.Patch("/perfumes/{id}/status", perfumeHandler.ToggleStatus)
 			r.Post("/admin/upload", perfumeHandler.UploadImage)
 		})

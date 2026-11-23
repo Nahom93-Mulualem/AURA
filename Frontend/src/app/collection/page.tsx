@@ -1,17 +1,35 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Search, Sparkles, Filter, X } from "lucide-react";
-import { MOCK_PERFUMES } from "@/data/mockPerfumes";
-import { PerfumeCategory } from "@/types/perfume";
+import React, { useState, useEffect, useMemo } from "react";
+import { Search, Sparkles, Filter, X, Loader2, RefreshCw } from "lucide-react";
+import { Perfume, PerfumeCategory } from "@/types/perfume";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
-import { usePerfumesCatalog } from "@/lib/perfumeStore";
+import { fetchPerfumes } from "@/lib/api";
 
 export default function CollectionPage() {
-  const perfumes = usePerfumesCatalog(MOCK_PERFUMES);
+  const [perfumes, setPerfumes] = useState<Perfume[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<PerfumeCategory | "all">("all");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
+
+  const loadPerfumes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchPerfumes();
+      setPerfumes(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load collection from database.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPerfumes();
+  }, []);
 
   const filteredPerfumes = useMemo(() => {
     return perfumes.filter((perfume) => {
@@ -27,12 +45,13 @@ export default function CollectionPage() {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesName = perfume.name.toLowerCase().includes(query);
-        const matchesSubtitle = perfume.subtitle.toLowerCase().includes(query);
-        const matchesNotes = [
-          ...perfume.notes.top,
-          ...perfume.notes.heart,
-          ...perfume.notes.base,
-        ].some((note) => note.toLowerCase().includes(query));
+        const matchesSubtitle = (perfume.subtitle || "").toLowerCase().includes(query);
+        const allNotes = [
+          ...(perfume.notes?.top || []),
+          ...(perfume.notes?.heart || []),
+          ...(perfume.notes?.base || []),
+        ];
+        const matchesNotes = allNotes.some((note) => note.toLowerCase().includes(query));
 
         if (!matchesName && !matchesSubtitle && !matchesNotes) {
           return false;
@@ -40,7 +59,7 @@ export default function CollectionPage() {
       }
       return true;
     });
-  }, [searchQuery, selectedCategory, onlyAvailable]);
+  }, [perfumes, searchQuery, selectedCategory, onlyAvailable]);
 
   return (
     <div className="pt-28 pb-20 max-w-[1200px] mx-auto px-4 sm:px-6">
@@ -53,7 +72,7 @@ export default function CollectionPage() {
           Fragrance Collection
         </h1>
         <p className="text-sm text-stone-muted leading-relaxed">
-          Explore our complete catalogue of hand-curated extrait and eau de parfum. Filter by scent character or search for specific aromatic notes.
+          Explore our complete catalogue of hand-curated extrait and eau de parfum. Sourced directly and managed in real-time.
         </p>
       </div>
 
@@ -106,27 +125,39 @@ export default function CollectionPage() {
               type="checkbox"
               checked={onlyAvailable}
               onChange={(e) => setOnlyAvailable(e.target.checked)}
-              className="rounded accent-gold w-4 h-4 cursor-pointer"
+              className="w-4 h-4 rounded accent-gold cursor-pointer"
             />
-            <span>In Stock Only</span>
+            <span>Show In Stock Only</span>
           </label>
         </div>
       </div>
 
-      {/* Fragrance Grid: 1 col on small phones (375px), 2 on larger, 3 on tablets, 4 on desktop */}
-      {filteredPerfumes.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredPerfumes.map((perfume, idx) => (
-            <PerfumeCard key={perfume.id} perfume={perfume} priority={idx < 4} />
-          ))}
+      {/* Error state */}
+      {error && (
+        <div className="p-8 rounded-2xl bg-clay/20 border border-clay/40 text-center space-y-3 mb-10">
+          <p className="text-sm font-semibold text-clay">{error}</p>
+          <button
+            onClick={loadPerfumes}
+            className="px-5 py-2 rounded-full bg-midnight border border-gold/40 text-gold text-xs flex items-center gap-2 mx-auto hover:bg-gold/10 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Retry Connection</span>
+          </button>
         </div>
-      ) : (
-        /* Empty State */
-        <div className="text-center py-20 rounded-xl bg-plum/30 border border-gold/15 p-8 max-w-md mx-auto space-y-4">
-          <Sparkles className="w-8 h-8 text-gold/60 mx-auto" />
-          <h3 className="font-serif text-2xl text-softwhite">No Fragrances Found</h3>
-          <p className="text-xs text-stone-muted leading-relaxed">
-            We couldn&apos;t find any perfume matching &ldquo;{searchQuery}&rdquo;. Try searching for different scent notes or reset your filters.
+      )}
+
+      {/* Loading state */}
+      {loading ? (
+        <div className="py-24 text-center space-y-3">
+          <Loader2 className="w-8 h-8 text-gold animate-spin mx-auto" />
+          <p className="text-xs text-stone-muted">Loading boutique collection...</p>
+        </div>
+      ) : filteredPerfumes.length === 0 ? (
+        <div className="text-center py-20 rounded-2xl bg-plum/30 border border-gold/15 space-y-4">
+          <Sparkles className="w-8 h-8 text-gold/40 mx-auto" />
+          <h3 className="font-serif text-xl text-softwhite">No fragrances match your criteria</h3>
+          <p className="text-xs text-stone-muted max-w-sm mx-auto">
+            Try adjusting your search terms or clearing the active category filters to view more creations.
           </p>
           <button
             onClick={() => {
@@ -134,10 +165,16 @@ export default function CollectionPage() {
               setSelectedCategory("all");
               setOnlyAvailable(false);
             }}
-            className="px-5 py-2 rounded-full bg-gold/15 border border-gold/40 text-gold text-xs uppercase tracking-wider hover:bg-gold hover:text-midnight transition-colors"
+            className="text-xs uppercase tracking-wider text-gold hover:underline"
           >
-            Reset Filters
+            Clear all filters
           </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {filteredPerfumes.map((perfume, idx) => (
+            <PerfumeCard key={perfume.id} perfume={perfume} priority={idx < 3} />
+          ))}
         </div>
       )}
     </div>

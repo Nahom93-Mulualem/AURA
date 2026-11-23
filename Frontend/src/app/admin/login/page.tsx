@@ -2,15 +2,30 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Lock, Sparkles, ArrowRight, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Lock, ArrowRight, ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import { loginAdmin } from "@/lib/api";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("admin@aurabyhani.com");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("In the backend phase, this connects securely to the Go Chi API with JWT authentication.");
+    setError(null);
+    setLoading(true);
+
+    try {
+      await loginAdmin(email.trim(), password);
+      router.push("/admin");
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials. Please verify your email and password.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,9 +39,16 @@ export default function AdminLoginPage() {
             Admin Authentication
           </h1>
           <p className="text-xs text-stone-muted">
-            Protected area for HANI to manage inventory and settings.
+            Protected management area for HANI to manage inventory and settings.
           </p>
         </div>
+
+        {error && (
+          <div className="p-3.5 rounded-lg bg-clay/20 border border-clay/40 text-clay text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
@@ -59,10 +81,20 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            className="w-full min-h-[44px] rounded-full bg-gold hover:bg-gold-light text-midnight font-semibold uppercase tracking-wider text-xs flex items-center justify-center gap-2 shadow-glow transition-all"
+            disabled={loading}
+            className="w-full min-h-[44px] rounded-full bg-gold hover:bg-gold-light disabled:opacity-50 text-midnight font-semibold uppercase tracking-wider text-xs flex items-center justify-center gap-2 shadow-glow transition-all"
           >
-            <span>Sign In to Dashboard</span>
-            <ArrowRight className="w-4 h-4" />
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Verifying...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In to Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 
@@ -74,9 +106,9 @@ export default function AdminLoginPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Store</span>
           </Link>
-          <Link href="/admin" className="text-gold hover:underline">
-            Dashboard Preview
-          </Link>
+          <span className="text-[10px] text-stone-muted">
+            Aura Security System
+          </span>
         </div>
       </div>
     </div>

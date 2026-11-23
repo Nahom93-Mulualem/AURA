@@ -1,15 +1,31 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { MOCK_PERFUMES } from "@/data/mockPerfumes";
-import { usePerfumesCatalog } from "@/lib/perfumeStore";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { Perfume } from "@/types/perfume";
+import { fetchPerfumes } from "@/lib/api";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
 
 export default function FeaturedFragrances() {
-  const perfumes = usePerfumesCatalog(MOCK_PERFUMES);
+  const [perfumes, setPerfumes] = useState<Perfume[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPerfumes()
+      .then((data) => {
+        setPerfumes(data);
+      })
+      .catch(() => {
+        // Fallback or empty if server is not yet running
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
   const featured = perfumes.filter((p) => p.featured);
+  const displayPerfumes = featured.length > 0 ? featured : perfumes.slice(0, 4);
 
   return (
     <section className="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
@@ -32,11 +48,18 @@ export default function FeaturedFragrances() {
       </div>
 
       {/* Grid: 1 col on 375px mobile, 2 on tablet, 4 on desktop */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {featured.map((perfume, idx) => (
-          <PerfumeCard key={perfume.id} perfume={perfume} priority={idx < 2} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="py-16 text-center space-y-2">
+          <Loader2 className="w-6 h-6 text-gold animate-spin mx-auto" />
+          <p className="text-xs text-stone-muted">Loading featured extraits...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {displayPerfumes.map((perfume, idx) => (
+            <PerfumeCard key={perfume.id} perfume={perfume} priority={idx < 2} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

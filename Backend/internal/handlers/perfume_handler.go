@@ -71,6 +71,49 @@ func (h *PerfumeHandler) CreatePerfume(w http.ResponseWriter, r *http.Request) {
 	SendJSON(w, http.StatusCreated, created)
 }
 
+// UpdatePerfume handles PUT /api/v1/perfumes/{id} (Admin protected)
+func (h *PerfumeHandler) UpdatePerfume(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		SendError(w, http.StatusBadRequest, "Missing perfume ID in URL path")
+		return
+	}
+
+	var input models.Perfume
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		SendError(w, http.StatusBadRequest, "Invalid JSON payload: "+err.Error())
+		return
+	}
+	input.ID = id
+
+	updated, err := h.service.UpdatePerfume(r.Context(), &input)
+	if err != nil {
+		SendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	SendJSON(w, http.StatusOK, updated)
+}
+
+// DeletePerfume handles DELETE /api/v1/perfumes/{id} (Admin protected)
+func (h *PerfumeHandler) DeletePerfume(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		SendError(w, http.StatusBadRequest, "Missing perfume ID in URL path")
+		return
+	}
+
+	if err := h.service.DeletePerfume(r.Context(), id); err != nil {
+		SendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	SendJSON(w, http.StatusOK, map[string]string{
+		"message": "Perfume successfully deleted",
+		"id":      id,
+	})
+}
+
 // ToggleStatus handles PATCH /api/v1/perfumes/{id}/status (Admin protected)
 func (h *PerfumeHandler) ToggleStatus(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")

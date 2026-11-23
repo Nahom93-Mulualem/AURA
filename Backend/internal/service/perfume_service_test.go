@@ -42,6 +42,16 @@ func (m *mockPerfumeRepo) Create(ctx context.Context, p *models.Perfume) (*model
 	return p, nil
 }
 
+func (m *mockPerfumeRepo) Update(ctx context.Context, p *models.Perfume) (*models.Perfume, error) {
+	for i, item := range m.perfumes {
+		if item.ID == p.ID {
+			m.perfumes[i] = *p
+			return p, nil
+		}
+	}
+	return nil, nil
+}
+
 func (m *mockPerfumeRepo) UpdateStatus(ctx context.Context, id string, status models.PerfumeStatus) error {
 	for i, p := range m.perfumes {
 		if p.ID == id {
@@ -123,5 +133,81 @@ func TestPerfumeService_ValidateImageUpload(t *testing.T) {
 	}
 	if err := svc.ValidateImageUpload(validHeader, 5); err != nil {
 		t.Fatalf("unexpected error for valid webp image: %v", err)
+	}
+}
+
+func TestPerfumeService_UpdateValidation(t *testing.T) {
+	initial := models.Perfume{
+		ID:       "test-id-1",
+		Name:     "Initial Name",
+		Price:    5000,
+		Category: models.CategoryUnisex,
+		Status:   models.StatusAvailable,
+	}
+	repo := &mockPerfumeRepo{perfumes: []models.Perfume{initial}}
+	svc := service.NewPerfumeService(repo)
+	ctx := context.Background()
+
+	// Test 1: Updating to invalid price
+	_, err := svc.UpdatePerfume(ctx, &models.Perfume{
+		ID:       "test-id-1",
+		Name:     "Initial Name",
+		Price:    -100,
+		Category: models.CategoryUnisex,
+	})
+	if err == nil {
+		t.Fatal("expected error for negative price on update, got nil")
+	}
+
+	// Test 2: Updating nonexistent ID
+	_, err = svc.UpdatePerfume(ctx, &models.Perfume{
+		ID:       "nonexistent-id",
+		Name:     "Some Name",
+		Price:    5500,
+		Category: models.CategoryUnisex,
+	})
+	if err == nil {
+		t.Fatal("expected error for nonexistent perfume, got nil")
+	}
+
+	// Test 3: Valid update
+	updated, err := svc.UpdatePerfume(ctx, &models.Perfume{
+		ID:       "test-id-1",
+		Name:     "Updated Name",
+		Price:    5500,
+		Category: models.CategoryUnisex,
+		Status:   models.StatusAvailable,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error on valid update: %v", err)
+	}
+	if updated.Price != 5500 {
+		t.Fatalf("expected updated price to be 5500, got %v", updated.Price)
+	}
+}
+
+func TestPerfumeService_DeleteValidation(t *testing.T) {
+	initial := models.Perfume{
+		ID:    "del-id-1",
+		Name:  "To Be Deleted",
+		Price: 5000,
+	}
+	repo := &mockPerfumeRepo{perfumes: []models.Perfume{initial}}
+	svc := service.NewPerfumeService(repo)
+	ctx := context.Background()
+
+	// Test 1: Empty ID
+	if err := svc.DeletePerfume(ctx, ""); err == nil {
+		t.Fatal("expected error for empty id on delete, got nil")
+	}
+
+	// Test 2: Nonexistent ID
+	if err := svc.DeletePerfume(ctx, "wrong-id"); err == nil {
+		t.Fatal("expected error for nonexistent id, got nil")
+	}
+
+	// Test 3: Valid delete
+	if err := svc.DeletePerfume(ctx, "del-id-1"); err != nil {
+		t.Fatalf("unexpected error deleting perfume: %v", err)
 	}
 }

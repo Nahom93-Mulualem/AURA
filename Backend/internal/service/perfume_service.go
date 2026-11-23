@@ -16,6 +16,8 @@ type PerfumeService interface {
 	ListPerfumes(ctx context.Context, category, status, search string) ([]models.Perfume, error)
 	GetPerfume(ctx context.Context, slug string) (*models.Perfume, error)
 	CreatePerfume(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
+	UpdatePerfume(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
+	DeletePerfume(ctx context.Context, id string) error
 	ToggleStatus(ctx context.Context, id string) (models.PerfumeStatus, error)
 	ValidateImageUpload(fileHeader *multipart.FileHeader, maxSizeMB int64) error
 }
@@ -78,6 +80,71 @@ func (s *perfumeService) CreatePerfume(ctx context.Context, p *models.Perfume) (
 
 	// 3. Delegate to repository
 	return s.repo.Create(ctx, p)
+}
+
+func (s *perfumeService) UpdatePerfume(ctx context.Context, p *models.Perfume) (*models.Perfume, error) {
+	if strings.TrimSpace(p.ID) == "" {
+		return nil, errors.New("perfume id is required for update")
+	}
+
+	// 1. Check existing
+	existing, err := s.repo.GetByID(ctx, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	if existing == nil {
+		return nil, fmt.Errorf("perfume not found with id: %s", p.ID)
+	}
+
+	// 2. Validate mandatory fields
+	if strings.TrimSpace(p.Name) == "" {
+		return nil, errors.New("perfume name cannot be empty")
+	}
+	if p.Price <= 0 {
+		return nil, errors.New("price must be greater than 0 ETB")
+	}
+	if p.Category == "" {
+		p.Category = existing.Category
+	}
+	if p.Status == "" {
+		p.Status = existing.Status
+	}
+	if p.SizeMl == "" {
+		p.SizeMl = existing.SizeMl
+	}
+	if p.Slug == "" {
+		p.Slug = strings.ToLower(strings.ReplaceAll(p.Name, " ", "-"))
+	}
+	p.CreatedAt = existing.CreatedAt
+
+	// 3. Validate category
+	validCategory := false
+	for _, c := range []models.PerfumeCategory{models.CategoryUnisex, models.CategoryFeminine, models.CategoryMasculine} {
+		if p.Category == c {
+			validCategory = true
+			break
+		}
+	}
+	if !validCategory {
+		return nil, fmt.Errorf("invalid category: %s", p.Category)
+	}
+
+	return s.repo.Update(ctx, p)
+}
+
+func (s *perfumeService) DeletePerfume(ctx context.Context, id string) error {
+	if strings.TrimSpace(id) == "" {
+		return errors.New("perfume id is required for delete")
+	}
+	existing, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return fmt.Errorf("perfume not found with id: %s", id)
+	}
+
+	return s.repo.Delete(ctx, id)
 }
 
 func (s *perfumeService) ToggleStatus(ctx context.Context, id string) (models.PerfumeStatus, error) {

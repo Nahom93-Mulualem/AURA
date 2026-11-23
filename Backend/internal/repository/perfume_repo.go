@@ -16,6 +16,7 @@ type PerfumeRepository interface {
 	GetBySlug(ctx context.Context, slug string) (*models.Perfume, error)
 	GetByID(ctx context.Context, id string) (*models.Perfume, error)
 	Create(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
+	Update(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
 	UpdateStatus(ctx context.Context, id string, status models.PerfumeStatus) error
 	Delete(ctx context.Context, id string) error
 }
@@ -177,6 +178,68 @@ func (r *postgresPerfumeRepo) Create(ctx context.Context, p *models.Perfume) (*m
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert perfume: %w", err)
+	}
+
+	return p, nil
+}
+
+// Update updates an existing perfume record using parameterized SQL
+func (r *postgresPerfumeRepo) Update(ctx context.Context, p *models.Perfume) (*models.Perfume, error) {
+	query := `
+		UPDATE perfumes SET
+			name = $1,
+			slug = $2,
+			subtitle = $3,
+			tagline = $4,
+			description = $5,
+			price = $6,
+			size_ml = $7,
+			category = $8,
+			status = $9,
+			featured = $10,
+			top_notes = $11,
+			heart_notes = $12,
+			base_notes = $13,
+			images = $14,
+			longevity = $15,
+			best_season = $16,
+			updated_at = $17
+		WHERE id = $18
+		RETURNING updated_at
+	`
+	now := time.Now()
+	if p.Slug == "" {
+		p.Slug = strings.ToLower(strings.ReplaceAll(p.Name, " ", "-"))
+	}
+
+	err := r.db.QueryRowContext(
+		ctx,
+		query,
+		p.Name,
+		p.Slug,
+		p.Subtitle,
+		p.Tagline,
+		p.Description,
+		p.Price,
+		p.SizeMl,
+		string(p.Category),
+		string(p.Status),
+		p.Featured,
+		pq.StringArray(p.Notes.Top),
+		pq.StringArray(p.Notes.Heart),
+		pq.StringArray(p.Notes.Base),
+		pq.StringArray(p.Images),
+		p.Longevity,
+		p.BestSeason,
+		now,
+		p.ID,
+	).Scan(&p.UpdatedAt)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("no perfume found with id: %s", p.ID)
+		}
+		return nil, fmt.Errorf("failed to update perfume: %w", err)
 	}
 
 	return p, nil

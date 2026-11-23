@@ -30,5 +30,44 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set HttpOnly, SameSite session cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "aura_admin_token",
+		Value:    authResp.Token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   86400, // 24 hours
+	})
+
 	SendJSON(w, http.StatusOK, authResp)
+}
+
+// Logout handles POST /api/v1/admin/logout
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "aura_admin_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+	SendJSON(w, http.StatusOK, map[string]string{
+		"message": "Logged out successfully",
+	})
+}
+
+// Me handles GET /api/v1/admin/me (Admin protected)
+func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(models.AdminContextKey).(*models.JWTClaims)
+	if !ok || claims == nil {
+		SendError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	SendJSON(w, http.StatusOK, map[string]string{
+		"id":    claims.AdminID,
+		"email": claims.Email,
+	})
 }

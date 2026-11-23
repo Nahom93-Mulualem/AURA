@@ -29,3 +29,6 @@ type JWTClaims struct {
 	Email   string `json:"email"`
 	jwt.RegisteredClaims
 }
+
+type ContextKey string
+const AdminContextKey ContextKey = "adminClaims"

@@ -229,9 +229,14 @@ export default function AdminPage() {
       };
 
       const created = await createPerfume(payload);
-      setPerfumes((prev) => [created, ...prev]);
+      if (created && created.name) {
+        setPerfumes((prev) => [created, ...prev.filter((p) => p && p.id !== created.id)]);
+        showToast(`✓ Published ${created.name} permanently to PostgreSQL!`);
+      } else {
+        await loadCatalog();
+        showToast(`✓ Published fragrance permanently to PostgreSQL!`);
+      }
       resetForm();
-      showToast(`✓ Published ${created.name} permanently to PostgreSQL!`);
     } catch (err: any) {
       alert(`Failed to create perfume: ${err.message}. Make sure you are authenticated.`);
     } finally {
@@ -278,9 +283,14 @@ export default function AdminPage() {
       };
 
       const updated = await updatePerfume(editingPerfume.id, payload);
-      setPerfumes((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      if (updated && updated.name) {
+        setPerfumes((prev) => prev.map((p) => (p && p.id === updated.id ? updated : p)));
+        showToast(`✓ Updated ${updated.name} (Price: ${formatPrice(updated.price)}) in database!`);
+      } else {
+        await loadCatalog();
+        showToast(`✓ Updated fragrance in database!`);
+      }
       resetForm();
-      showToast(`✓ Updated ${updated.name} (Price: ${formatPrice(updated.price)}) in database!`);
     } catch (err: any) {
       alert(`Failed to update perfume: ${err.message}. Make sure you are authenticated.`);
     } finally {
@@ -305,10 +315,13 @@ export default function AdminPage() {
     }
   };
 
-  const filtered = perfumes.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.subtitle.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = (Array.isArray(perfumes) ? perfumes : []).filter((p) => {
+    if (!p) return false;
+    const pName = (p.name || "").toLowerCase();
+    const pSub = (p.subtitle || "").toLowerCase();
+    const q = (search || "").toLowerCase();
+    return pName.includes(q) || pSub.includes(q);
+  });
 
   return (
     <div className="pt-28 pb-20 max-w-[1200px] mx-auto px-4 sm:px-6">
@@ -481,13 +494,12 @@ export default function AdminPage() {
                             e.target.value as PerfumeStatus
                           )
                         }
-                        className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-semibold tracking-wider transition-all cursor-pointer focus:outline-none focus:ring-1 focus:ring-gold ${
-                          item.status === "available"
-                            ? "bg-sage/20 text-sage border border-sage/40"
-                            : item.status === "new"
+                        className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-semibold tracking-wider transition-all cursor-pointer focus:outline-none focus:ring-1 focus:ring-gold ${item.status === "available"
+                          ? "bg-sage/20 text-sage border border-sage/40"
+                          : item.status === "new"
                             ? "bg-gold/20 text-gold border border-gold/40"
                             : "bg-clay/20 text-clay border border-clay/40"
-                        }`}
+                          }`}
                         title="Change availability status"
                       >
                         <option value="available" className="bg-midnight text-sage">
@@ -586,13 +598,12 @@ export default function AdminPage() {
                         e.target.value as PerfumeStatus
                       )
                     }
-                    className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-semibold tracking-wider transition-all cursor-pointer focus:outline-none ${
-                      item.status === "available"
-                        ? "bg-sage/20 text-sage border border-sage/40"
-                        : item.status === "new"
+                    className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-semibold tracking-wider transition-all cursor-pointer focus:outline-none ${item.status === "available"
+                      ? "bg-sage/20 text-sage border border-sage/40"
+                      : item.status === "new"
                         ? "bg-gold/20 text-gold border border-gold/40"
                         : "bg-clay/20 text-clay border border-clay/40"
-                    }`}
+                      }`}
                   >
                     <option value="available" className="bg-midnight text-sage">
                       Available

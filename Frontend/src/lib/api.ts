@@ -57,8 +57,14 @@ export async function fetchPerfumes(params?: {
     throw new Error(`Failed to fetch perfumes: ${res.statusText}`);
   }
 
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  const json = await res.json();
+  const list = Array.isArray(json)
+    ? json
+    : json?.data && Array.isArray(json.data)
+    ? json.data
+    : [];
+
+  return list;
 }
 
 // 2. Fetch single perfume by slug
@@ -75,7 +81,8 @@ export async function fetchPerfumeBySlug(slug: string): Promise<Perfume | null> 
     throw new Error(`Failed to fetch perfume: ${res.statusText}`);
   }
 
-  return res.json();
+  const json = await res.json();
+  return json?.data || json;
 }
 
 // 3. Create a new perfume (Admin protected)
@@ -96,7 +103,8 @@ export async function createPerfume(payload: PerfumePayload): Promise<Perfume> {
     throw new Error(err.error || "Failed to create perfume");
   }
 
-  return res.json();
+  const json = await res.json();
+  return json?.data || json;
 }
 
 // 4. Update an existing perfume (Admin protected)
@@ -117,7 +125,8 @@ export async function updatePerfume(id: string, payload: Partial<PerfumePayload>
     throw new Error(err.error || "Failed to update perfume");
   }
 
-  return res.json();
+  const json = await res.json();
+  return json?.data || json;
 }
 
 // 5. Delete a perfume (Admin protected)
@@ -155,7 +164,8 @@ export async function updatePerfumeStatus(id: string, status: PerfumeStatus): Pr
     throw new Error(err.error || "Failed to update status");
   }
 
-  return res.json();
+  const json = await res.json();
+  return json?.data || json;
 }
 
 // 7. Upload perfume bottle photography
@@ -178,7 +188,11 @@ export async function uploadPerfumeImage(file: File): Promise<string> {
     throw new Error(err.error || "Failed to upload image");
   }
 
-  const data = await res.json();
+  const json = await res.json();
+  const data = json?.data || json;
+  if (!data?.url) {
+    throw new Error("Server did not return uploaded image URL");
+  }
   return data.url;
 }
 
@@ -198,11 +212,12 @@ export async function loginAdmin(email: string, password: string): Promise<{ tok
     throw new Error(err.error || "Invalid email or password");
   }
 
-  const data = await res.json();
-  if (data.token) {
+  const json = await res.json();
+  const data = json?.data || json;
+  if (data?.token) {
     setAuthToken(data.token);
   }
-  return { token: data.token, email: data.admin?.email || email };
+  return { token: data?.token, email: data?.admin?.email || email };
 }
 
 // 9. Admin Logout
@@ -233,7 +248,8 @@ export async function checkAdminSession(): Promise<{ id: string; email: string }
       credentials: "include",
     });
     if (!res.ok) return null;
-    return res.json();
+    const json = await res.json();
+    return json?.data || json;
   } catch {
     return null;
   }

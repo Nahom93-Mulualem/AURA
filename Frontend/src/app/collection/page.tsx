@@ -32,7 +32,8 @@ export default function CollectionPage() {
   }, []);
 
   const filteredPerfumes = useMemo(() => {
-    return perfumes.filter((perfume) => {
+    return (Array.isArray(perfumes) ? perfumes : []).filter((perfume) => {
+      if (!perfume) return false;
       // Category filter
       if (selectedCategory !== "all" && perfume.category !== selectedCategory) {
         return false;
@@ -44,14 +45,14 @@ export default function CollectionPage() {
       // Search query filter (matches name, notes, or subtitle)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesName = perfume.name.toLowerCase().includes(query);
+        const matchesName = (perfume.name || "").toLowerCase().includes(query);
         const matchesSubtitle = (perfume.subtitle || "").toLowerCase().includes(query);
         const allNotes = [
           ...(perfume.notes?.top || []),
           ...(perfume.notes?.heart || []),
           ...(perfume.notes?.base || []),
         ];
-        const matchesNotes = allNotes.some((note) => note.toLowerCase().includes(query));
+        const matchesNotes = allNotes.some((note) => (note || "").toLowerCase().includes(query));
 
         if (!matchesName && !matchesSubtitle && !matchesNotes) {
           return false;

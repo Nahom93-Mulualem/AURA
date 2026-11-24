@@ -458,7 +458,7 @@ export default function AdminPage() {
                     <td className="py-3 px-4 flex items-center gap-3">
                       <div className="relative w-10 h-12 rounded overflow-hidden bg-midnight flex-shrink-0">
                         <Image
-                          src={item.images[0] || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop"}
+                          src={(item.images && item.images.length > 0 && item.images[0]?.trim()) || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop"}
                           alt={item.name}
                           fill
                           className="object-cover"
@@ -553,7 +553,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3">
                     <div className="relative w-12 h-14 rounded overflow-hidden bg-midnight flex-shrink-0">
                       <Image
-                        src={item.images[0] || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop"}
+                        src={(item.images && item.images.length > 0 && item.images[0]?.trim()) || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop"}
                         alt={item.name}
                         fill
                         className="object-cover"
@@ -808,6 +808,7 @@ export default function AdminPage() {
                         src={formImagePreview}
                         alt="Preview"
                         fill
+                        unoptimized
                         className="object-cover"
                       />
                     </div>

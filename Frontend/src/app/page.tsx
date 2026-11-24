@@ -66,8 +66,8 @@ export default function HomePage() {
             <div className="relative w-[280px] sm:w-[340px] aspect-[4/5] rounded-card overflow-hidden bg-plum border border-gold/30 shadow-glow-lg animate-float">
               {/* Bottle Photo */}
               <Image
-                src={heroPerfume.images[0]}
-                alt={heroPerfume.name}
+                src={(heroPerfume?.images && heroPerfume.images.length > 0 && heroPerfume.images[0]?.trim()) || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop"}
+                alt={heroPerfume?.name || "Aura Fragrance"}
                 fill
                 priority
                 sizes="(max-width: 640px) 280px, 340px"

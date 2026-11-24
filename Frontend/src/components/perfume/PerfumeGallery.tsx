@@ -9,18 +9,26 @@ interface PerfumeGalleryProps {
   perfumeName: string;
 }
 
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop";
+
 export default function PerfumeGallery({ images, perfumeName }: PerfumeGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
+  const safeImages = Array.isArray(images) && images.filter((img) => img && typeof img === "string" && img.trim() !== "").length > 0
+    ? images.filter((img) => img && typeof img === "string" && img.trim() !== "").map((s) => s.trim())
+    : [FALLBACK_IMAGE];
+
+  const validIndex = selectedIndex >= safeImages.length ? 0 : selectedIndex;
+
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setSelectedIndex((prev) => (prev === 0 ? safeImages.length - 1 : prev - 1));
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setSelectedIndex((prev) => (prev === safeImages.length - 1 ? 0 : prev + 1));
   };
 
   return (
@@ -31,8 +39,8 @@ export default function PerfumeGallery({ images, perfumeName }: PerfumeGalleryPr
         className="group relative aspect-[4/5] w-full rounded-card overflow-hidden bg-plum border border-gold/20 cursor-zoom-in shadow-glow"
       >
         <Image
-          src={images[selectedIndex]}
-          alt={`${perfumeName} - image ${selectedIndex + 1}`}
+          src={safeImages[validIndex]}
+          alt={`${perfumeName} - image ${validIndex + 1}`}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
@@ -45,7 +53,7 @@ export default function PerfumeGallery({ images, perfumeName }: PerfumeGalleryPr
         </div>
 
         {/* Navigation Arrows if multiple photos */}
-        {images.length > 1 && (
+        {safeImages.length > 1 && (
           <>
             <button
               onClick={handlePrev}
@@ -66,14 +74,14 @@ export default function PerfumeGallery({ images, perfumeName }: PerfumeGalleryPr
       </div>
 
       {/* Thumbnail Bar */}
-      {images.length > 1 && (
+      {safeImages.length > 1 && (
         <div className="flex items-center gap-3 overflow-x-auto pb-2">
-          {images.map((img, idx) => (
+          {safeImages.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedIndex(idx)}
               className={`relative w-20 h-24 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
-                selectedIndex === idx
+                validIndex === idx
                   ? "border-gold shadow-glow scale-102"
                   : "border-plum/80 opacity-60 hover:opacity-100"
               }`}
@@ -111,7 +119,7 @@ export default function PerfumeGallery({ images, perfumeName }: PerfumeGalleryPr
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={images[selectedIndex]}
+              src={safeImages[validIndex]}
               alt={`${perfumeName} full resolution`}
               fill
               className="object-contain"

@@ -22,6 +22,12 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const fallbackImage = "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop";
+  const primaryImage =
+    perfume?.images && perfume.images.length > 0 && perfume.images[0]?.trim()
+      ? perfume.images[0].trim()
+      : fallbackImage;
+
   // 3D Tilt Values for Desktop Hover
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -163,8 +169,8 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
           className="relative w-full h-full pointer-events-none"
         >
           <Image
-            src={perfume.images[0]}
-            alt={perfume.name}
+            src={primaryImage}
+            alt={perfume.name || "Aura Fragrance"}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             priority={priority}

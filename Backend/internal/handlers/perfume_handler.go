@@ -95,6 +95,29 @@ func (h *PerfumeHandler) UpdatePerfume(w http.ResponseWriter, r *http.Request) {
 	SendJSON(w, http.StatusOK, updated)
 }
 
+// PatchPerfume handles PATCH /api/v1/perfumes/{id} (Admin protected) - Partial resource updates
+func (h *PerfumeHandler) PatchPerfume(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		SendError(w, http.StatusBadRequest, "Missing perfume ID in URL path")
+		return
+	}
+
+	var input models.PatchPerfumeRequest
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		SendError(w, http.StatusBadRequest, "Invalid JSON payload: "+err.Error())
+		return
+	}
+
+	updated, err := h.service.PatchPerfume(r.Context(), id, &input)
+	if err != nil {
+		SendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	SendJSON(w, http.StatusOK, updated)
+}
+
 // DeletePerfume handles DELETE /api/v1/perfumes/{id} (Admin protected)
 func (h *PerfumeHandler) DeletePerfume(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")

@@ -172,11 +172,13 @@ func TestPerfumeService_UpdateValidation(t *testing.T) {
 
 	// Test 3: Valid update
 	updated, err := svc.UpdatePerfume(ctx, &models.Perfume{
-		ID:       "test-id-1",
-		Name:     "Updated Name",
-		Price:    5500,
-		Category: models.CategoryUnisex,
-		Status:   models.StatusAvailable,
+		ID:          "test-id-1",
+		Name:        "Updated Name",
+		Description: "Updated description of exquisite fragrance",
+		SizeMl:      "100ml",
+		Price:       5500,
+		Category:    models.CategoryUnisex,
+		Status:      models.StatusAvailable,
 	})
 	if err != nil {
 		t.Fatalf("unexpected error on valid update: %v", err)
@@ -209,5 +211,72 @@ func TestPerfumeService_DeleteValidation(t *testing.T) {
 	// Test 3: Valid delete
 	if err := svc.DeletePerfume(ctx, "del-id-1"); err != nil {
 		t.Fatalf("unexpected error deleting perfume: %v", err)
+	}
+}
+
+func TestPerfumeService_PatchPerfume(t *testing.T) {
+	initial := models.Perfume{
+		ID:          "patch-id-1",
+		Name:        "Saffron Glow",
+		Slug:        "saffron-glow",
+		Description: "A luxurious saffron scent",
+		Price:       7000,
+		SizeMl:      "100ml",
+		Category:    models.CategoryUnisex,
+		Status:      models.StatusAvailable,
+		Notes: models.ScentNotes{
+			Top:   []string{"Saffron"},
+			Heart: []string{"Rose"},
+			Base:  []string{"Amber"},
+		},
+	}
+	repo := &mockPerfumeRepo{perfumes: []models.Perfume{initial}}
+	svc := service.NewPerfumeService(repo)
+	ctx := context.Background()
+
+	// Test 1: Partial update - Price only
+	newPrice := 8500.0
+	patched, err := svc.PatchPerfume(ctx, "patch-id-1", &models.PatchPerfumeRequest{
+		Price: &newPrice,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error on partial price patch: %v", err)
+	}
+	if patched.Price != 8500 {
+		t.Fatalf("expected price 8500, got %v", patched.Price)
+	}
+	// Verify other fields remain intact
+	if patched.Name != "Saffron Glow" || patched.Description != "A luxurious saffron scent" || len(patched.Notes.Top) != 1 {
+		t.Fatalf("expected untouched fields to remain unchanged, got: %+v", patched)
+	}
+
+	// Test 2: Invalid price in PATCH (< 0) should be rejected
+	invalidPrice := -50.0
+	_, err = svc.PatchPerfume(ctx, "patch-id-1", &models.PatchPerfumeRequest{
+		Price: &invalidPrice,
+	})
+	if err == nil {
+		t.Fatal("expected error when patching negative price, got nil")
+	}
+
+	// Test 3: Invalid category in PATCH should be rejected
+	invalidCategory := models.PerfumeCategory("invalid_category")
+	_, err = svc.PatchPerfume(ctx, "patch-id-1", &models.PatchPerfumeRequest{
+		Category: &invalidCategory,
+	})
+	if err == nil {
+		t.Fatal("expected error when patching invalid category, got nil")
+	}
+
+	// Test 4: Patching Name updates Slug automatically
+	newName := "Saffron Velvet"
+	patchedName, err := svc.PatchPerfume(ctx, "patch-id-1", &models.PatchPerfumeRequest{
+		Name: &newName,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error patching name: %v", err)
+	}
+	if patchedName.Name != "Saffron Velvet" || patchedName.Slug != "saffron-velvet" {
+		t.Fatalf("expected name and slug updated, got name=%s slug=%s", patchedName.Name, patchedName.Slug)
 	}
 }

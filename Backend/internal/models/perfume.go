@@ -46,6 +46,23 @@ type Perfume struct {
 	UpdatedAt   time.Time       `json:"updatedAt"`
 }
 
+// PatchPerfumeRequest defines optional fields for PATCH /api/v1/perfumes/{id}
+type PatchPerfumeRequest struct {
+	Name        *string          `json:"name,omitempty"`
+	Subtitle    *string          `json:"subtitle,omitempty"`
+	Tagline     *string          `json:"tagline,omitempty"`
+	Description *string          `json:"description,omitempty"`
+	Price       *float64         `json:"price,omitempty"`
+	SizeMl      *string          `json:"sizeMl,omitempty"`
+	Category    *PerfumeCategory `json:"category,omitempty"`
+	Status      *PerfumeStatus   `json:"status,omitempty"`
+	Featured    *bool            `json:"featured,omitempty"`
+	Notes       *ScentNotes      `json:"notes,omitempty"`
+	Images      []string         `json:"images,omitempty"`
+	Longevity   *string          `json:"longevity,omitempty"`
+	BestSeason  *string          `json:"bestSeason,omitempty"`
+}
+
 // SQL scan helper
 type PerfumeDBRow struct {
 	ID          string

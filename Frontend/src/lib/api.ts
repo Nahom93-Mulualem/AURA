@@ -119,7 +119,7 @@ export async function createPerfume(payload: PerfumePayload): Promise<Perfume> {
   return json?.data || json;
 }
 
-// 4. Update an existing perfume (Admin protected)
+// 4. Update an existing perfume completely (PUT /api/v1/perfumes/:id - Admin protected)
 export async function updatePerfume(id: string, payload: Partial<PerfumePayload>): Promise<Perfume> {
   const token = getAuthToken();
   const res = await fetch(`${API_BASE}/perfumes/${id}`, {
@@ -134,6 +134,27 @@ export async function updatePerfume(id: string, payload: Partial<PerfumePayload>
 
   if (!res.ok) {
     return handleResponseError(res, "Failed to update perfume");
+  }
+
+  const json = await res.json();
+  return json?.data || json;
+}
+
+// 4b. Partially update an existing perfume (PATCH /api/v1/perfumes/:id - Admin protected)
+export async function patchPerfume(id: string, payload: Partial<PerfumePayload>): Promise<Perfume> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/perfumes/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    return handleResponseError(res, "Failed to patch perfume");
   }
 
   const json = await res.json();

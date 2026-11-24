@@ -90,6 +90,7 @@ func main() {
 			r.Get("/admin/me", authHandler.Me)
 			r.Post("/perfumes", perfumeHandler.CreatePerfume)
 			r.Put("/perfumes/{id}", perfumeHandler.UpdatePerfume)
+			r.Patch("/perfumes/{id}", perfumeHandler.PatchPerfume)
 			r.Delete("/perfumes/{id}", perfumeHandler.DeletePerfume)
 			r.Patch("/perfumes/{id}/status", perfumeHandler.ToggleStatus)
 			r.Post("/admin/upload", perfumeHandler.UploadImage)

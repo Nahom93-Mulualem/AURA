@@ -37,6 +37,19 @@ export function setAuthToken(token: string | null) {
   }
 }
 
+// Helper to handle response errors and trigger redirect on 401
+async function handleResponseError(res: Response, defaultMsg: string): Promise<never> {
+  if (res.status === 401) {
+    setAuthToken(null);
+    if (typeof window !== "undefined" && !window.location.pathname.includes("/admin/login")) {
+      window.location.href = "/admin/login?expired=1";
+    }
+    throw new Error("Session expired. Please sign in again.");
+  }
+  const err = await res.json().catch(() => ({ error: res.statusText }));
+  throw new Error(err.error || defaultMsg);
+}
+
 // 1. Fetch all perfumes
 export async function fetchPerfumes(params?: {
   category?: string;
@@ -99,8 +112,7 @@ export async function createPerfume(payload: PerfumePayload): Promise<Perfume> {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to create perfume");
+    return handleResponseError(res, "Failed to create perfume");
   }
 
   const json = await res.json();
@@ -121,8 +133,7 @@ export async function updatePerfume(id: string, payload: Partial<PerfumePayload>
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to update perfume");
+    return handleResponseError(res, "Failed to update perfume");
   }
 
   const json = await res.json();
@@ -141,8 +152,7 @@ export async function deletePerfume(id: string): Promise<void> {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to delete perfume");
+    return handleResponseError(res, "Failed to delete perfume");
   }
 }
 
@@ -160,8 +170,7 @@ export async function updatePerfumeStatus(id: string, status: PerfumeStatus): Pr
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to update status");
+    return handleResponseError(res, "Failed to update status");
   }
 
   const json = await res.json();
@@ -184,8 +193,7 @@ export async function uploadPerfumeImage(file: File): Promise<string> {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to upload image");
+    return handleResponseError(res, "Failed to upload image");
   }
 
   const json = await res.json();

@@ -52,6 +52,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [adminUser, setAdminUser] = useState<{ id: string; email: string } | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
 
   // Modals state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -99,11 +100,29 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    loadCatalog();
-    checkAdminSession().then((user) => {
-      setAdminUser(user);
-    });
-  }, []);
+    let isMounted = true;
+    async function verifyAuthAndLoad() {
+      try {
+        const user = await checkAdminSession();
+        if (!isMounted) return;
+        if (!user) {
+          router.replace("/admin/login");
+          return;
+        }
+        setAdminUser(user);
+        setAuthChecking(false);
+        loadCatalog();
+      } catch {
+        if (isMounted) {
+          router.replace("/admin/login");
+        }
+      }
+    }
+    verifyAuthAndLoad();
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   const handleLogout = async () => {
     await logoutAdmin();
@@ -322,6 +341,23 @@ export default function AdminPage() {
     const q = (search || "").toLowerCase();
     return pName.includes(q) || pSub.includes(q);
   });
+
+  if (authChecking) {
+    return (
+      <div className="min-h-[85vh] flex flex-col items-center justify-center gap-4 text-center px-4">
+        <div className="w-14 h-14 rounded-full bg-midnight border border-gold/40 flex items-center justify-center text-gold shadow-glow">
+          <Lock className="w-6 h-6 animate-pulse" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="font-serif text-lg text-softwhite">Aura Admin Studio</h2>
+          <p className="text-xs text-stone-muted tracking-wider uppercase flex items-center justify-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-gold" />
+            Verifying Administrator Session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-28 pb-20 max-w-[1200px] mx-auto px-4 sm:px-6">

@@ -48,7 +48,7 @@ func main() {
 	authService := service.NewAuthService(adminRepo, cfg.JWTSecret)
 	perfumeService := service.NewPerfumeService(perfumeRepo)
 
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, cfg)
 	perfumeHandler := handlers.NewPerfumeHandler(perfumeService, cfg)
 
 	// 4. Configure Chi Router and Middlewares
@@ -57,7 +57,7 @@ func main() {
 	r.Use(chimiddleware.RealIP)
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
-	r.Use(middleware.CorsMiddleware())
+	r.Use(middleware.CorsMiddleware(cfg.AllowedOrigins))
 
 	// 5. Static uploads file server
 	if err := os.MkdirAll(cfg.UploadDir, os.ModePerm); err == nil {
@@ -85,7 +85,7 @@ func main() {
 
 		// Protected Admin Routes (Requires valid JWT Bearer Token or Session Cookie)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RequireAuth(authService))
+			r.Use(middleware.RequireAuth(authService, cfg.AllowedOrigins))
 
 			r.Get("/admin/me", authHandler.Me)
 			r.Post("/perfumes", perfumeHandler.CreatePerfume)

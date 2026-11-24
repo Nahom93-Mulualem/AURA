@@ -4,16 +4,21 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"aura-backend/internal/config"
 	"aura-backend/internal/models"
 	"aura-backend/internal/service"
 )
 
 type AuthHandler struct {
 	authService service.AuthService
+	cfg         *config.Config
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService service.AuthService, cfg *config.Config) *AuthHandler {
+	return &AuthHandler{
+		authService: authService,
+		cfg:         cfg,
+	}
 }
 
 // Login handles POST /api/v1/admin/login
@@ -30,13 +35,28 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Dynamic SSL/TLS detection (r.TLS or reverse proxy headers X-Forwarded-Proto)
+	isSecure := false
+	if h.cfg != nil && h.cfg.CookieSecure {
+		isSecure = true
+	}
+	if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" || r.Header.Get("X-Forwarded-Ssl") == "on" {
+		isSecure = true
+	}
+
+	cookieDomain := ""
+	if h.cfg != nil {
+		cookieDomain = h.cfg.CookieDomain
+	}
+
 	// Set HttpOnly, SameSite session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "aura_admin_token",
 		Value:    authResp.Token,
 		Path:     "/",
+		Domain:   cookieDomain,
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   isSecure,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   86400, // 24 hours
 	})
@@ -46,10 +66,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 // Logout handles POST /api/v1/admin/logout
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	cookieDomain := ""
+	if h.cfg != nil {
+		cookieDomain = h.cfg.CookieDomain
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "aura_admin_token",
 		Value:    "",
 		Path:     "/",
+		Domain:   cookieDomain,
 		HttpOnly: true,
 		MaxAge:   -1,
 	})

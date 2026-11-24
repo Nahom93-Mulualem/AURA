@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -20,6 +21,9 @@ type Config struct {
 	JWTSecret        string
 	UploadDir        string
 	MaxUploadSizeMB  int64
+	CookieDomain     string
+	CookieSecure     bool
+	AllowedOrigins   []string
 }
 
 func LoadConfig() *Config {
@@ -33,9 +37,27 @@ func LoadConfig() *Config {
 		maxSize = 5
 	}
 
+	serverEnv := getEnv("SERVER_ENV", "development")
+	cookieSecureStr := getEnv("COOKIE_SECURE", "")
+	cookieSecure := false
+	if cookieSecureStr == "true" || (cookieSecureStr == "" && serverEnv == "production") {
+		cookieSecure = true
+	}
+
+	originsRaw := getEnv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+	var allowedOrigins []string
+	for _, o := range strings.Split(originsRaw, ",") {
+		if trimmed := strings.TrimSpace(o); trimmed != "" {
+			allowedOrigins = append(allowedOrigins, trimmed)
+		}
+	}
+	if len(allowedOrigins) == 0 {
+		allowedOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	}
+
 	return &Config{
 		ServerPort:      getEnv("SERVER_PORT", "8080"),
-		ServerEnv:       getEnv("SERVER_ENV", "development"),
+		ServerEnv:       serverEnv,
 		DBHost:          getEnv("DB_HOST", "localhost"),
 		DBPort:          getEnv("DB_PORT", "5432"),
 		DBUser:          getEnv("DB_USER", "postgres"),
@@ -45,6 +67,9 @@ func LoadConfig() *Config {
 		JWTSecret:       getEnv("JWT_SECRET", "super_secret_aura_jwt_key_hani_2026"),
 		UploadDir:       getEnv("UPLOAD_DIR", "./uploads"),
 		MaxUploadSizeMB: maxSize,
+		CookieDomain:    getEnv("COOKIE_DOMAIN", ""),
+		CookieSecure:    cookieSecure,
+		AllowedOrigins:  allowedOrigins,
 	}
 }
 

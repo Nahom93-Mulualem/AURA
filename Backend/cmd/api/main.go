@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"aura-backend/internal/config"
 	"aura-backend/internal/database"
@@ -45,7 +46,10 @@ func main() {
 	// 2. Connect to PostgreSQL
 	db, err := database.ConnectPostgres(cfg)
 	if err != nil {
-		log.Println("Database notice:", err)
+		if cfg.ServerEnv == "production" {
+			log.Fatalf("Fatal [CRITICAL SECURITY]: Failed to connect to PostgreSQL database in production: %v\n", err)
+		}
+		log.Println("Database notice (offline/development mode):", err)
 	}
 	defer func() {
 		if db != nil {
@@ -131,13 +135,46 @@ func main() {
 	}
 }
 
-// ensureDefaultAdmin seeds a default admin account ONLY if no admin accounts exist at all
+// ensureDefaultAdmin seeds an initial admin account ONLY if zero admin accounts exist in the database.
+// Existing admin accounts and passwords are never modified or overwritten.
 func ensureDefaultAdmin(db *sql.DB, adminRepo repository.AdminRepository, cfg *config.Config) {
+	if adminRepo == nil {
+		return
+	}
+
 	ctx := context.Background()
 	count, err := adminRepo.Count(ctx)
-	if err == nil && count == 0 {
-		authSvc := service.NewAuthService(adminRepo, cfg.JWTSecret)
-		_, _ = authSvc.RegisterAdmin(ctx, "admin@aurabyhani.com", "AuraLuxury2026!")
-		log.Println("✓ Seeded initial default admin: admin@aurabyhani.com")
+	if err != nil {
+		log.Printf("Notice: Could not query existing administrator count: %v\n", err)
+		return
+	}
+
+	// If accounts already exist, NEVER overwrite or modify them
+	if count > 0 {
+		return
+	}
+
+	// Never seed hardcoded default credentials in production
+	if cfg.ServerEnv == "production" {
+		initialEmail := strings.TrimSpace(os.Getenv("INITIAL_ADMIN_EMAIL"))
+		initialPass := strings.TrimSpace(os.Getenv("INITIAL_ADMIN_PASSWORD"))
+
+		if initialEmail != "" && len(initialPass) >= 8 {
+			authSvc := service.NewAuthService(adminRepo, cfg.JWTSecret)
+			if _, regErr := authSvc.RegisterAdmin(ctx, initialEmail, initialPass); regErr == nil {
+				log.Printf("✓ Seeded initial production administrator: %s\n", initialEmail)
+			} else {
+				log.Printf("Notice: Failed to seed initial production administrator: %v\n", regErr)
+			}
+		} else {
+			log.Println("Notice: Zero admin accounts found in production database. Hardcoded default admin seeding is disabled in production for security. Supply INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD (min 8 chars) in .env or provision manually.")
+		}
+		return
+	}
+
+	// Development only: seed convenience default admin
+	authSvc := service.NewAuthService(adminRepo, cfg.JWTSecret)
+	if _, regErr := authSvc.RegisterAdmin(ctx, "admin@aurabyhani.com", "AuraLuxury2026!"); regErr == nil {
+		log.Println("✓ Seeded initial default admin for development: admin@aurabyhani.com")
 	}
 }

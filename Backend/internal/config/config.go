@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -59,13 +61,16 @@ func LoadConfig() *Config {
 		allowedOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
 	}
 
-	jwtSecret := getEnv("JWT_SECRET", "super_secret_aura_jwt_key_hani_2026")
-	if serverEnv == "production" && jwtSecret == "super_secret_aura_jwt_key_hani_2026" {
-		log.Println("WARNING [CRITICAL SECURITY]: Running in production with the default fallback JWT_SECRET! Set a secure random key in .env.")
+	port := resolvePort()
+
+	rawSecret, secretExists := os.LookupEnv("JWT_SECRET")
+	jwtSecret, err := validateJWTSecret(serverEnv, rawSecret, secretExists)
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
 
 	return &Config{
-		ServerPort:          getEnv("SERVER_PORT", "8080"),
+		ServerPort:          port,
 		ServerEnv:           serverEnv,
 		DatabaseURL:         getEnv("DATABASE_URL", ""),
 		DBHost:              getEnv("DB_HOST", "localhost"),
@@ -91,4 +96,31 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func resolvePort() string {
+	if port := getEnv("PORT", ""); port != "" {
+		return port
+	}
+	return getEnv("SERVER_PORT", "8080")
+}
+
+func validateJWTSecret(serverEnv string, rawSecret string, exists bool) (string, error) {
+	if serverEnv != "production" {
+		if exists && rawSecret != "" {
+			return rawSecret, nil
+		}
+		return "super_secret_aura_jwt_key_hani_2026", nil
+	}
+
+	if !exists || strings.TrimSpace(rawSecret) == "" {
+		return "", errors.New("Fatal [CRITICAL SECURITY]: JWT_SECRET must be explicitly provided in production.")
+	}
+	if rawSecret == "super_secret_aura_jwt_key_hani_2026" {
+		return "", errors.New("Fatal [CRITICAL SECURITY]: Default fallback JWT_SECRET cannot be used in production. Set a secure random 32+ character key.")
+	}
+	if len(rawSecret) < 32 {
+		return "", fmt.Errorf("Fatal [CRITICAL SECURITY]: JWT_SECRET in production must be at least 32 characters long (provided: %d characters).", len(rawSecret))
+	}
+	return rawSecret, nil
 }

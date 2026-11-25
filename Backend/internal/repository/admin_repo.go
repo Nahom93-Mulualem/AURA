@@ -31,7 +31,8 @@ func (r *postgresAdminRepo) GetByEmail(ctx context.Context, email string) (*mode
 	query := `
 		SELECT id, email, password_hash, created_at, updated_at
 		FROM admins
-		WHERE email = $1
+		WHERE email = $1 OR LOWER(email) = LOWER($1)
+		LIMIT 1
 	`
 	var admin models.Admin
 	err := r.db.QueryRowContext(ctx, query, email).Scan(

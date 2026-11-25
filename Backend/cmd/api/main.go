@@ -16,6 +16,7 @@ import (
 	"aura-backend/internal/database"
 	"aura-backend/internal/handlers"
 	"aura-backend/internal/middleware"
+	"aura-backend/internal/models"
 	"aura-backend/internal/repository"
 	"aura-backend/internal/service"
 
@@ -211,6 +212,12 @@ func ensureDefaultAdmin(db *sql.DB, adminRepo repository.AdminRepository, cfg *c
 		return
 	}
 
+	// 1. Temporary production administrator password recovery
+	// Only active when RESET_ADMIN_PASSWORD is explicitly configured and non-empty.
+	if resetPass := os.Getenv("RESET_ADMIN_PASSWORD"); resetPass != "" {
+		handleAdminPasswordRecovery(ctx, adminRepo, cfg, resetPass)
+	}
+
 	// If accounts already exist, NEVER overwrite or modify them
 	if count > 0 {
 		return
@@ -241,4 +248,55 @@ func ensureDefaultAdmin(db *sql.DB, adminRepo repository.AdminRepository, cfg *c
 	if _, regErr := authSvc.RegisterAdmin(ctx, "admin@aurabyhani.com", "AuraLuxury2026!"); regErr == nil {
 		log.Println("✓ Seeded initial default admin for development: admin@aurabyhani.com")
 	}
+}
+
+// handleAdminPasswordRecovery provides a temporary, non-destructive password recovery mechanism
+// for an existing administrator without deleting or recreating the account.
+func handleAdminPasswordRecovery(ctx context.Context, adminRepo repository.AdminRepository, cfg *config.Config, rawResetPass string) {
+	if strings.TrimSpace(rawResetPass) == "" || len(rawResetPass) < 8 {
+		log.Println("Notice [ADMIN RECOVERY]: RESET_ADMIN_PASSWORD provided but rejected (must be at least 8 characters and not whitespace-only).")
+		return
+	}
+
+	// Target administrator candidate emails
+	var candidates []string
+	if email := strings.TrimSpace(os.Getenv("RESET_ADMIN_EMAIL")); email != "" {
+		candidates = append(candidates, email, strings.ToLower(email))
+	}
+	if email := strings.TrimSpace(os.Getenv("INITIAL_ADMIN_EMAIL")); email != "" {
+		candidates = append(candidates, email, strings.ToLower(email))
+	}
+	candidates = append(candidates,
+		"hanigebremedhin21@gmail.com",
+		"Hanigebremedhin21@gmail.com",
+		"admin@aurabyhani.com",
+	)
+
+	var targetAdmin *models.Admin
+	for _, candidate := range candidates {
+		admin, err := adminRepo.GetByEmail(ctx, candidate)
+		if err == nil && admin != nil {
+			targetAdmin = admin
+			break
+		}
+	}
+
+	if targetAdmin == nil {
+		log.Println("Notice [ADMIN RECOVERY]: Could not locate administrator account for password reset. Set RESET_ADMIN_EMAIL to match the account email.")
+		return
+	}
+
+	authSvc := service.NewAuthService(adminRepo, cfg.JWTSecret)
+	newHash, err := authSvc.HashPassword(rawResetPass)
+	if err != nil {
+		log.Printf("Notice [ADMIN RECOVERY]: Failed to hash recovery password: %v\n", err)
+		return
+	}
+
+	if err := adminRepo.UpdatePassword(ctx, targetAdmin.ID, newHash); err != nil {
+		log.Printf("Notice [ADMIN RECOVERY]: Failed to update administrator password in database: %v\n", err)
+		return
+	}
+
+	log.Printf("✓ [ADMIN RECOVERY]: Successfully updated password for administrator (%s) in place. IMPORTANT: Remove RESET_ADMIN_PASSWORD from Render environment variables now.\n", targetAdmin.Email)
 }

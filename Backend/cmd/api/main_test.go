@@ -226,3 +226,138 @@ func TestEnsureDefaultAdmin_RejectsWhitespaceOnlyPassword(t *testing.T) {
 		t.Fatalf("Whitespace-only password should be rejected, but an admin was seeded!")
 	}
 }
+
+func TestAdminPasswordRecovery_UpdatesExistingPasswordInPlace(t *testing.T) {
+	oldHash := "$2a$10$oldExpiredOrForgottenHashValuePlaceholder"
+	adminUUID := "hani-admin-uuid-12345"
+	adminEmail := "hanigebremedhin21@gmail.com"
+
+	repo := &mockAdminRepo{
+		admins: []*models.Admin{
+			{
+				ID:           adminUUID,
+				Email:        adminEmail,
+				PasswordHash: oldHash,
+			},
+		},
+	}
+
+	cfg := &config.Config{
+		ServerEnv: "production",
+		JWTSecret: "test-secret-32-chars-long-minimum!",
+	}
+
+	newRecoveryPassword := "NewHaniRecoveryPass2026!"
+	os.Setenv("RESET_ADMIN_PASSWORD", newRecoveryPassword)
+	defer os.Unsetenv("RESET_ADMIN_PASSWORD")
+
+	ensureDefaultAdmin(nil, repo, cfg)
+
+	if len(repo.admins) != 1 {
+		t.Fatalf("Expected exactly 1 admin, found %d", len(repo.admins))
+	}
+
+	// UUID and Email must be preserved
+	if repo.admins[0].ID != adminUUID {
+		t.Errorf("Admin UUID was altered! Expected %s, got %s", adminUUID, repo.admins[0].ID)
+	}
+	if repo.admins[0].Email != adminEmail {
+		t.Errorf("Admin Email was altered! Expected %s, got %s", adminEmail, repo.admins[0].Email)
+	}
+
+	// Password hash must be updated and match new recovery password
+	if repo.admins[0].PasswordHash == oldHash {
+		t.Fatalf("Password hash was not updated!")
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(repo.admins[0].PasswordHash), []byte(newRecoveryPassword)); err != nil {
+		t.Fatalf("Bcrypt verification failed for newly set recovery password: %v", err)
+	}
+}
+
+func TestAdminPasswordRecovery_InactiveWhenVariableAbsent(t *testing.T) {
+	originalHash := "$2a$10$untouchedOriginalHashString"
+	repo := &mockAdminRepo{
+		admins: []*models.Admin{
+			{
+				ID:           "uuid-keep-intact",
+				Email:        "hanigebremedhin21@gmail.com",
+				PasswordHash: originalHash,
+			},
+		},
+	}
+
+	cfg := &config.Config{
+		ServerEnv: "production",
+		JWTSecret: "test-secret-32-chars-long-minimum!",
+	}
+
+	os.Unsetenv("RESET_ADMIN_PASSWORD")
+
+	ensureDefaultAdmin(nil, repo, cfg)
+
+	if repo.admins[0].PasswordHash != originalHash {
+		t.Fatalf("Password hash was changed when RESET_ADMIN_PASSWORD was absent!")
+	}
+}
+
+func TestAdminPasswordRecovery_RejectsShortOrWhitespacePassword(t *testing.T) {
+	originalHash := "$2a$10$untouchedOriginalHashString"
+	repo := &mockAdminRepo{
+		admins: []*models.Admin{
+			{
+				ID:           "uuid-keep-intact",
+				Email:        "hanigebremedhin21@gmail.com",
+				PasswordHash: originalHash,
+			},
+		},
+	}
+
+	cfg := &config.Config{
+		ServerEnv: "production",
+		JWTSecret: "test-secret-32-chars-long-minimum!",
+	}
+
+	// 1. Short password (< 8 chars)
+	os.Setenv("RESET_ADMIN_PASSWORD", "short")
+	ensureDefaultAdmin(nil, repo, cfg)
+	if repo.admins[0].PasswordHash != originalHash {
+		t.Fatalf("Password was updated with a short password (< 8 chars)!")
+	}
+
+	// 2. Whitespace-only password (>= 8 spaces)
+	os.Setenv("RESET_ADMIN_PASSWORD", "          ")
+	ensureDefaultAdmin(nil, repo, cfg)
+	if repo.admins[0].PasswordHash != originalHash {
+		t.Fatalf("Password was updated with a whitespace-only password!")
+	}
+
+	os.Unsetenv("RESET_ADMIN_PASSWORD")
+}
+
+func TestAdminPasswordRecovery_PreservesExactPasswordWithoutTrimming(t *testing.T) {
+	originalHash := "$2a$10$untouchedOriginalHashString"
+	repo := &mockAdminRepo{
+		admins: []*models.Admin{
+			{
+				ID:           "uuid-keep-intact",
+				Email:        "hanigebremedhin21@gmail.com",
+				PasswordHash: originalHash,
+			},
+		},
+	}
+
+	cfg := &config.Config{
+		ServerEnv: "production",
+		JWTSecret: "test-secret-32-chars-long-minimum!",
+	}
+
+	exactPassWithSpaces := "  RecoveryPasswordWithSpaces!  "
+	os.Setenv("RESET_ADMIN_PASSWORD", exactPassWithSpaces)
+	defer os.Unsetenv("RESET_ADMIN_PASSWORD")
+
+	ensureDefaultAdmin(nil, repo, cfg)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(repo.admins[0].PasswordHash), []byte(exactPassWithSpaces)); err != nil {
+		t.Fatalf("Exact password verification failed! Leading/trailing spaces were not preserved: %v", err)
+	}
+}

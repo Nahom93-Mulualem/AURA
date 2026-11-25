@@ -4,12 +4,7 @@ import React, { useState } from "react";
 import {
   Send,
   Instagram,
-  Mail,
-  Phone,
-  Copy,
-  Check,
   ChevronDown,
-  Sparkles,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import TikTokIcon from "@/components/ui/TikTokIcon";
@@ -39,14 +34,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function ContactPage() {
-  const [copiedItem, setCopiedItem] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedItem(id);
-    setTimeout(() => setCopiedItem(null), 2500);
-  };
 
   return (
     <div className="pt-28 pb-20 max-w-[1200px] mx-auto px-4 sm:px-6">
@@ -64,7 +52,7 @@ export default function ContactPage() {
       </div>
 
       {/* Contact Channels Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-20">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
         {/* Telegram */}
         <div className="p-6 rounded-card bg-plum/60 border border-gold/30 shadow-glow flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
@@ -77,11 +65,8 @@ export default function ContactPage() {
           </div>
           <div>
             <h3 className="font-serif text-xl text-softwhite">Telegram</h3>
-            <p className="text-xs text-stone-muted mt-1">
+            <p className="text-xs text-stone-muted mt-1 leading-relaxed">
               Direct chat for quick consultations, photos, and orders.
-            </p>
-            <p className="text-sm text-gold font-mono mt-2">
-              {BRAND_CONTACT.telegramHandle}
             </p>
           </div>
           <a
@@ -107,11 +92,8 @@ export default function ContactPage() {
           </div>
           <div>
             <h3 className="font-serif text-xl text-softwhite">WhatsApp</h3>
-            <p className="text-xs text-stone-muted mt-1">
+            <p className="text-xs text-stone-muted mt-1 leading-relaxed">
               Chat directly or request voice notes and bottle videos.
-            </p>
-            <p className="text-sm text-sage font-mono mt-2">
-              {BRAND_CONTACT.whatsappHandle}
             </p>
           </div>
           <a
@@ -137,11 +119,8 @@ export default function ContactPage() {
           </div>
           <div>
             <h3 className="font-serif text-xl text-softwhite">Instagram</h3>
-            <p className="text-xs text-stone-muted mt-1">
+            <p className="text-xs text-stone-muted mt-1 leading-relaxed">
               Follow bottle photography, new releases, and DM inquiries.
-            </p>
-            <p className="text-sm text-rose-dust font-mono mt-2">
-              {BRAND_CONTACT.instagramHandle}
             </p>
           </div>
           <a
@@ -167,11 +146,8 @@ export default function ContactPage() {
           </div>
           <div>
             <h3 className="font-serif text-xl text-softwhite">TikTok</h3>
-            <p className="text-xs text-stone-muted mt-1">
+            <p className="text-xs text-stone-muted mt-1 leading-relaxed">
               Unboxing, scent reviews, and application tips.
-            </p>
-            <p className="text-sm text-gold font-mono mt-2">
-              {BRAND_CONTACT.tiktokHandle}
             </p>
           </div>
           <a
@@ -182,78 +158,6 @@ export default function ContactPage() {
           >
             <span>Open TikTok</span>
             <TikTokIcon className="w-3.5 h-3.5" />
-          </a>
-        </div>
-
-        {/* Phone / Call */}
-        <div className="p-6 rounded-card bg-plum/60 border border-gold/20 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-gold">
-              <Phone className="w-5 h-5" />
-            </div>
-            <button
-              onClick={() => handleCopy(BRAND_CONTACT.phone, "phone")}
-              className="p-2 rounded-full hover:bg-midnight/80 text-stone-muted hover:text-gold transition-colors"
-              aria-label="Copy phone number"
-            >
-              {copiedItem === "phone" ? (
-                <Check className="w-4 h-4 text-sage" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-          <div>
-            <h3 className="font-serif text-xl text-softwhite">Phone Call</h3>
-            <p className="text-xs text-stone-muted mt-1">
-              Call HANI directly for urgent inquiries or orders.
-            </p>
-            <p className="text-sm text-softwhite font-mono mt-2">
-              {BRAND_CONTACT.phoneDisplay}
-            </p>
-          </div>
-          <a
-            href={`tel:${BRAND_CONTACT.phone}`}
-            className="w-full min-h-[44px] rounded-full bg-midnight border border-gold/30 hover:border-gold text-softwhite hover:text-gold text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-colors"
-          >
-            <span>Call Now</span>
-            <Phone className="w-3.5 h-3.5" />
-          </a>
-        </div>
-
-        {/* Email */}
-        <div className="p-6 rounded-card bg-plum/60 border border-gold/20 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-gold">
-              <Mail className="w-5 h-5" />
-            </div>
-            <button
-              onClick={() => handleCopy(BRAND_CONTACT.email, "email")}
-              className="p-2 rounded-full hover:bg-midnight/80 text-stone-muted hover:text-gold transition-colors"
-              aria-label="Copy email"
-            >
-              {copiedItem === "email" ? (
-                <Check className="w-4 h-4 text-sage" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-          <div>
-            <h3 className="font-serif text-xl text-softwhite">Email Inquiries</h3>
-            <p className="text-xs text-stone-muted mt-1">
-              For corporate gifting, bulk orders, or inquiries.
-            </p>
-            <p className="text-sm text-softwhite font-mono mt-2 truncate">
-              {BRAND_CONTACT.email}
-            </p>
-          </div>
-          <a
-            href={`mailto:${BRAND_CONTACT.email}`}
-            className="w-full min-h-[44px] rounded-full bg-midnight border border-gold/30 hover:border-gold text-softwhite hover:text-gold text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-colors"
-          >
-            <span>Send Email</span>
-            <Mail className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>

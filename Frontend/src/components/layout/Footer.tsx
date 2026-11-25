@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Send,
   Instagram,
-  Phone,
   MapPin,
   Sparkles,
   ArrowUp,
@@ -84,16 +83,7 @@ export default function Footer() {
                   className="flex items-center gap-2.5 min-h-[44px] hover:text-gold transition-colors text-softwhite/90"
                 >
                   <Send className="w-4 h-4 text-gold flex-shrink-0" />
-                  <span className="font-mono text-xs">{BRAND_CONTACT.telegramHandle}</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`tel:${BRAND_CONTACT.phone}`}
-                  className="flex items-center gap-2.5 min-h-[44px] hover:text-gold transition-colors text-softwhite/90"
-                >
-                  <Phone className="w-4 h-4 text-gold flex-shrink-0" />
-                  <span className="font-mono text-xs">{BRAND_CONTACT.phoneDisplay}</span>
+                  <span className="text-xs">Telegram Chat</span>
                 </a>
               </li>
               <li>

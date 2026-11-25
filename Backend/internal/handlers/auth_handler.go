@@ -97,3 +97,53 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		"email": claims.Email,
 	})
 }
+
+// ChangePassword handles POST /api/v1/admin/change-password (Admin protected)
+func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(models.AdminContextKey).(*models.JWTClaims)
+	if !ok || claims == nil {
+		SendError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var req models.ChangePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		SendError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if err := h.authService.ChangePassword(r.Context(), claims.AdminID, req.CurrentPassword, req.NewPassword); err != nil {
+		SendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	SendJSON(w, http.StatusOK, map[string]string{
+		"message": "Password updated successfully",
+	})
+}
+
+// UpdateProfile handles PUT /api/v1/admin/profile (Admin protected)
+func (h *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(models.AdminContextKey).(*models.JWTClaims)
+	if !ok || claims == nil {
+		SendError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var req models.UpdateEmailRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		SendError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	admin, err := h.authService.UpdateEmail(r.Context(), claims.AdminID, req.Email)
+	if err != nil {
+		SendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	SendJSON(w, http.StatusOK, map[string]string{
+		"id":    admin.ID,
+		"email": admin.Email,
+	})
+}

@@ -88,6 +88,8 @@ func main() {
 			r.Use(middleware.RequireAuth(authService, cfg.AllowedOrigins))
 
 			r.Get("/admin/me", authHandler.Me)
+			r.Post("/admin/change-password", authHandler.ChangePassword)
+			r.Put("/admin/profile", authHandler.UpdateProfile)
 			r.Post("/perfumes", perfumeHandler.CreatePerfume)
 			r.Put("/perfumes/{id}", perfumeHandler.UpdatePerfume)
 			r.Patch("/perfumes/{id}", perfumeHandler.PatchPerfume)
@@ -105,13 +107,13 @@ func main() {
 	}
 }
 
-// ensureDefaultAdmin seeds a default admin account if not already present
+// ensureDefaultAdmin seeds a default admin account ONLY if no admin accounts exist at all
 func ensureDefaultAdmin(db *sql.DB, adminRepo repository.AdminRepository, cfg *config.Config) {
 	ctx := context.Background()
-	admin, err := adminRepo.GetByEmail(ctx, "admin@aurabyhani.com")
-	if err == nil && admin == nil {
+	count, err := adminRepo.Count(ctx)
+	if err == nil && count == 0 {
 		authSvc := service.NewAuthService(adminRepo, cfg.JWTSecret)
 		_, _ = authSvc.RegisterAdmin(ctx, "admin@aurabyhani.com", "AuraLuxury2026!")
-		log.Println("✓ Seeded default admin: admin@aurabyhani.com")
+		log.Println("✓ Seeded initial default admin: admin@aurabyhani.com")
 	}
 }

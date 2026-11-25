@@ -32,6 +32,8 @@ import {
   uploadPerfumeImage,
   checkAdminSession,
   logoutAdmin,
+  changeAdminPassword,
+  updateAdminProfile,
   PerfumePayload,
 } from "@/lib/api";
 
@@ -59,6 +61,16 @@ export default function AdminPage() {
   const [editingPerfume, setEditingPerfume] = useState<Perfume | null>(null);
   const [deletingPerfume, setDeletingPerfume] = useState<Perfume | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Security & Account Settings State
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
+  const [securityError, setSecurityError] = useState<string | null>(null);
 
   // Add/Edit Form State
   const [formName, setFormName] = useState("");
@@ -207,6 +219,62 @@ export default function AdminPage() {
     setFormUploadError(null);
     setShowAddModal(false);
     setEditingPerfume(null);
+  };
+
+  // Submit Admin Email Update
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityError(null);
+    setSecuritySuccess(null);
+    if (!newAdminEmail.trim() || !newAdminEmail.includes("@")) {
+      setSecurityError("Please enter a valid email address.");
+      return;
+    }
+
+    setSecurityLoading(true);
+    try {
+      const res = await updateAdminProfile(newAdminEmail.trim());
+      setAdminUser((prev) => (prev ? { ...prev, email: res.email } : prev));
+      setSecuritySuccess("✓ Admin email updated successfully!");
+      showToast("✓ Admin email updated successfully");
+    } catch (err: any) {
+      setSecurityError(err.message || "Failed to update email.");
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  // Submit Password Change
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityError(null);
+    setSecuritySuccess(null);
+    if (!currentPassword) {
+      setSecurityError("Current password is required.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setSecurityError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setSecurityError("New passwords do not match.");
+      return;
+    }
+
+    setSecurityLoading(true);
+    try {
+      await changeAdminPassword(currentPassword, newPassword);
+      setSecuritySuccess("✓ Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      showToast("✓ Password changed successfully");
+    } catch (err: any) {
+      setSecurityError(err.message || "Failed to change password.");
+    } finally {
+      setSecurityLoading(false);
+    }
   };
 
   // Submit Add Fragrance (POST)
@@ -389,6 +457,21 @@ export default function AdminPage() {
               <span className="text-[11px] text-stone-muted bg-plum/60 border border-gold/20 px-3 py-1.5 rounded-full">
                 {adminUser.email}
               </span>
+              <button
+                onClick={() => {
+                  setNewAdminEmail(adminUser.email);
+                  setSecurityError(null);
+                  setSecuritySuccess(null);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmNewPassword("");
+                  setShowSecurityModal(true);
+                }}
+                className="p-2 rounded-full border border-gold/30 text-stone-muted hover:text-gold hover:border-gold transition-colors"
+                title="Account & Security Settings"
+              >
+                <Shield className="w-4 h-4" />
+              </button>
               <button
                 onClick={handleLogout}
                 className="p-2 rounded-full border border-gold/30 text-stone-muted hover:text-clay hover:border-clay transition-colors"
@@ -938,6 +1021,158 @@ export default function AdminPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ACCOUNT & SECURITY MODAL */}
+      {showSecurityModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-midnight/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+        >
+          <div className="bg-plum border border-gold/30 rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-glow relative my-8">
+            <button
+              onClick={() => setShowSecurityModal(false)}
+              className="absolute top-5 right-5 p-2 rounded-full text-stone-muted hover:text-gold hover:bg-midnight/50 transition-colors"
+              title="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-gold/20 pb-4">
+              <div className="w-10 h-10 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-gold">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-serif text-xl text-softwhite">
+                  Account & Security
+                </h3>
+                <p className="text-xs text-stone-muted">
+                  Update administrator email and access credentials
+                </p>
+              </div>
+            </div>
+
+            {/* Status alerts */}
+            {securitySuccess && (
+              <div className="p-3 rounded-xl bg-sage/20 border border-sage/40 text-sage text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{securitySuccess}</span>
+              </div>
+            )}
+            {securityError && (
+              <div className="p-3 rounded-xl bg-clay/20 border border-clay/40 text-clay text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{securityError}</span>
+              </div>
+            )}
+
+            {/* Section 1: Update Email */}
+            <form onSubmit={handleUpdateEmail} className="space-y-3 pt-1">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gold flex items-center gap-1.5">
+                <span>Administrator Email</span>
+              </h4>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <input
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  placeholder="admin@aurabyhani.com"
+                  required
+                  className="flex-1 p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite text-xs focus:outline-none focus:border-gold"
+                />
+                <button
+                  type="submit"
+                  disabled={securityLoading}
+                  className="px-5 py-2.5 rounded-lg bg-gold hover:bg-gold-light text-midnight font-medium text-xs uppercase tracking-wider shadow-glow transition-all disabled:opacity-50 whitespace-nowrap"
+                >
+                  {securityLoading ? "Saving..." : "Update Email"}
+                </button>
+              </div>
+              <p className="text-[11px] text-stone-muted">
+                Safely updates the primary admin email without duplicating the account.
+              </p>
+            </form>
+
+            <div className="border-t border-gold/15 my-4" />
+
+            {/* Section 2: Change Password */}
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gold flex items-center gap-1.5">
+                <span>Change Password</span>
+              </h4>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] text-stone-muted mb-1">
+                    Current Password *
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    placeholder="••••••••••••"
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite text-xs focus:outline-none focus:border-gold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-stone-muted mb-1">
+                      New Password (Min 8 chars) *
+                    </label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      placeholder="••••••••••••"
+                      className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite text-xs focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-stone-muted mb-1">
+                      Confirm New Password *
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      required
+                      placeholder="••••••••••••"
+                      className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite text-xs focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSecurityModal(false)}
+                  className="px-4 py-2 rounded-full border border-gold/20 text-stone-muted hover:text-softwhite text-xs transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={securityLoading}
+                  className="min-h-[38px] px-5 rounded-full bg-gold hover:bg-gold-light text-midnight font-medium uppercase tracking-wider text-xs flex items-center gap-2 shadow-glow disabled:opacity-50 transition-all"
+                >
+                  {securityLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <span>Update Password</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

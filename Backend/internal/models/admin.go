@@ -32,3 +32,12 @@ type JWTClaims struct {
 
 type ContextKey string
 const AdminContextKey ContextKey = "adminClaims"
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword"`
+}
+
+type UpdateEmailRequest struct {
+	Email string `json:"email"`
+}

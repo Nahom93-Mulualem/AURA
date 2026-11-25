@@ -55,6 +55,11 @@ func LoadConfig() *Config {
 		allowedOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
 	}
 
+	jwtSecret := getEnv("JWT_SECRET", "super_secret_aura_jwt_key_hani_2026")
+	if serverEnv == "production" && jwtSecret == "super_secret_aura_jwt_key_hani_2026" {
+		log.Println("WARNING [CRITICAL SECURITY]: Running in production with the default fallback JWT_SECRET! Set a secure random key in .env.")
+	}
+
 	return &Config{
 		ServerPort:      getEnv("SERVER_PORT", "8080"),
 		ServerEnv:       serverEnv,
@@ -64,7 +69,7 @@ func LoadConfig() *Config {
 		DBPassword:      getEnv("DB_PASSWORD", "postgres"),
 		DBName:          getEnv("DB_NAME", "aura_db"),
 		DBSSLMode:       getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:       getEnv("JWT_SECRET", "super_secret_aura_jwt_key_hani_2026"),
+		JWTSecret:       jwtSecret,
 		UploadDir:       getEnv("UPLOAD_DIR", "./uploads"),
 		MaxUploadSizeMB: maxSize,
 		CookieDomain:    getEnv("COOKIE_DOMAIN", ""),

@@ -283,3 +283,45 @@ export async function checkAdminSession(): Promise<{ id: string; email: string }
     return null;
   }
 }
+
+// 11. Change Admin Password
+export async function changeAdminPassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/admin/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!res.ok) {
+    return handleResponseError(res, "Failed to change password");
+  }
+
+  const json = await res.json();
+  return json?.data || json;
+}
+
+// 12. Update Admin Email Profile
+export async function updateAdminProfile(email: string): Promise<{ id: string; email: string }> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/admin/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+    body: JSON.stringify({ email }),
+  });
+
+  if (!res.ok) {
+    return handleResponseError(res, "Failed to update admin profile");
+  }
+
+  const json = await res.json();
+  return json?.data || json;
+}

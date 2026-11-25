@@ -2,17 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
-	"time"
 
 	"aura-backend/internal/config"
 	"aura-backend/internal/models"
 	"aura-backend/internal/service"
 	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -178,33 +175,32 @@ func (h *PerfumeHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ensure upload directory exists
-	if err := os.MkdirAll(h.cfg.UploadDir, os.ModePerm); err != nil {
-		SendError(w, http.StatusInternalServerError, "Failed to create upload directory")
+	// Reset file reader to the beginning before uploading
+	if seeker, ok := file.(io.Seeker); ok {
+		if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+			SendError(w, http.StatusInternalServerError, "Failed to process image stream")
+			return
+		}
+	}
+
+	if h.cld == nil {
+		SendError(w, http.StatusInternalServerError, "Cloud storage service is unavailable")
 		return
 	}
 
-	// Create unique filename
-	ext := filepath.Ext(fileHeader.Filename)
-	uniqueFilename := fmt.Sprintf("aura-%d%s", time.Now().UnixNano(), ext)
-	dstPath := filepath.Join(h.cfg.UploadDir, uniqueFilename)
-
-	dst, err := os.Create(dstPath)
+	// Direct upload to Cloudinary
+	uploadRes, err := h.cld.Upload.Upload(r.Context(), file, uploader.UploadParams{
+		Folder:       "aura/perfumes",
+		ResourceType: "image",
+	})
 	if err != nil {
-		SendError(w, http.StatusInternalServerError, "Failed to save file to disk")
-		return
-	}
-	defer dst.Close()
-
-	if _, err := io.Copy(dst, file); err != nil {
-		SendError(w, http.StatusInternalServerError, "Failed to write file contents")
+		SendError(w, http.StatusInternalServerError, "Failed to upload image to cloud storage")
 		return
 	}
 
-	// Return image URL
-	imageURL := fmt.Sprintf("http://localhost:%s/uploads/%s", h.cfg.ServerPort, uniqueFilename)
+	// Return image URL and public ID preserving existing response contract
 	SendJSON(w, http.StatusOK, map[string]string{
-		"url":      imageURL,
-		"filename": uniqueFilename,
+		"url":      uploadRes.SecureURL,
+		"filename": uploadRes.PublicID,
 	})
 }

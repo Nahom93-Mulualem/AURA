@@ -162,20 +162,5 @@ export const MOCK_PERFUMES: Perfume[] = [
   },
 ];
 
-export const BRAND_CONTACT = {
-  name: "HANI",
-  brandName: "Aura by HANI",
-  tagline: "Choose your way. Scents that stay in memory.",
-  telegram: "https://t.me/Niha027",
-  telegramHandle: "@Niha027",
-  instagram: "https://instagram.com/aura_by_hanii",
-  instagramHandle: "@aura_by_hanii",
-  tiktok: "https://tiktok.com/@aura.by.hani",
-  tiktokHandle: "@aura.by.hani",
-  whatsapp: "https://wa.me/251911234567",
-  whatsappHandle: "+251 91 123 4567",
-  email: "aurabyhani@gmail.com",
-  phone: "+251911234567",
-  phoneDisplay: "+251 91 123 4567",
-  location: "Addis Ababa, Ethiopia",
-};
+import { BRAND_CONTACT } from "@/config/contact";
+export { BRAND_CONTACT };

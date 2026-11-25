@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   Send,
   Instagram,
-  Mail,
   Phone,
+  MapPin,
   Sparkles,
   ArrowUp,
   Heart,
@@ -14,7 +14,7 @@ import {
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import TikTokIcon from "@/components/ui/TikTokIcon";
 import AuraLogo from "@/components/ui/AuraLogo";
-import { BRAND_CONTACT } from "@/data/mockPerfumes";
+import { BRAND_CONTACT } from "@/config/contact";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -73,16 +73,27 @@ export default function Footer() {
           {/* Column 3: Contact Details */}
           <div className="space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] text-gold font-medium">
-              Contact Channels
+              Contact
             </h4>
-            <ul className="space-y-2 text-sm text-softwhite/80">
+            <ul className="space-y-1 text-sm text-softwhite/80">
+              <li>
+                <a
+                  href={BRAND_CONTACT.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 min-h-[44px] hover:text-gold transition-colors text-softwhite/90"
+                >
+                  <Send className="w-4 h-4 text-gold flex-shrink-0" />
+                  <span className="font-mono text-xs">{BRAND_CONTACT.telegramHandle}</span>
+                </a>
+              </li>
               <li>
                 <a
                   href={`tel:${BRAND_CONTACT.phone}`}
-                  className="flex items-center gap-2 hover:text-gold transition-colors"
+                  className="flex items-center gap-2.5 min-h-[44px] hover:text-gold transition-colors text-softwhite/90"
                 >
-                  <Phone className="w-4 h-4 text-gold" />
-                  <span>{BRAND_CONTACT.phoneDisplay}</span>
+                  <Phone className="w-4 h-4 text-gold flex-shrink-0" />
+                  <span className="font-mono text-xs">{BRAND_CONTACT.phoneDisplay}</span>
                 </a>
               </li>
               <li>
@@ -90,23 +101,22 @@ export default function Footer() {
                   href={BRAND_CONTACT.whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-sage transition-colors"
+                  className="flex items-center gap-2.5 min-h-[44px] hover:text-sage transition-colors text-softwhite/90"
                 >
-                  <WhatsAppIcon className="w-4 h-4 text-sage" />
-                  <span>WhatsApp Chat</span>
+                  <WhatsAppIcon className="w-4 h-4 text-sage flex-shrink-0" />
+                  <span className="text-xs">WhatsApp Chat</span>
                 </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${BRAND_CONTACT.email}`}
-                  className="flex items-center gap-2 hover:text-gold transition-colors"
+                  href={BRAND_CONTACT.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 min-h-[44px] text-stone-muted hover:text-softwhite transition-colors text-xs"
                 >
-                  <Mail className="w-4 h-4 text-gold" />
-                  <span>{BRAND_CONTACT.email}</span>
+                  <MapPin className="w-4 h-4 text-gold/70 flex-shrink-0" />
+                  <span>{BRAND_CONTACT.location}</span>
                 </a>
-              </li>
-              <li className="text-xs text-stone-muted pt-1">
-                Location: {BRAND_CONTACT.location}
               </li>
             </ul>
           </div>
@@ -114,33 +124,16 @@ export default function Footer() {
           {/* Column 4: Social Channels & Telegram Channel */}
           <div className="space-y-4">
             <h4 className="text-xs uppercase tracking-[0.2em] text-gold font-medium">
-              Connect Directly
+              Follow HANI
             </h4>
-            <div className="flex items-center gap-2.5">
-              <a
-                href={BRAND_CONTACT.telegram}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Telegram"
-                className="w-10 h-10 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
-              >
-                <Send className="w-4 h-4" />
-              </a>
-              <a
-                href={BRAND_CONTACT.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-                className="w-10 h-10 rounded-full bg-midnight border border-sage/40 flex items-center justify-center text-sage hover:border-sage hover:scale-105 transition-all shadow-glow"
-              >
-                <WhatsAppIcon className="w-4 h-4" />
-              </a>
+            <div className="flex items-center gap-3">
               <a
                 href={BRAND_CONTACT.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="w-10 h-10 rounded-full bg-midnight border border-rose-dust/40 flex items-center justify-center text-softwhite hover:border-rose-dust hover:text-rose-dust hover:scale-105 transition-all shadow-glow"
+                aria-label="Follow HANI on Instagram"
+                title="Follow HANI on Instagram"
+                className="w-11 h-11 rounded-full bg-midnight border border-rose-dust/30 flex items-center justify-center text-softwhite hover:border-rose-dust hover:text-rose-dust hover:scale-105 transition-all shadow-glow"
               >
                 <Instagram className="w-4 h-4" />
               </a>
@@ -148,34 +141,40 @@ export default function Footer() {
                 href={BRAND_CONTACT.tiktok}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="TikTok"
-                className="w-10 h-10 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
+                aria-label="Follow HANI on TikTok"
+                title="Follow HANI on TikTok"
+                className="w-11 h-11 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
               >
                 <TikTokIcon className="w-4 h-4" />
               </a>
               <a
-                href={`mailto:${BRAND_CONTACT.email}`}
-                aria-label="Email"
-                className="w-10 h-10 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
+                href={BRAND_CONTACT.telegramChannel || BRAND_CONTACT.telegram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Join HANI on Telegram"
+                title="Join HANI on Telegram"
+                className="w-11 h-11 rounded-full bg-midnight border border-gold/30 flex items-center justify-center text-softwhite hover:border-gold hover:text-gold hover:scale-105 transition-all shadow-glow"
               >
-                <Mail className="w-4 h-4" />
+                <Send className="w-4 h-4" />
               </a>
             </div>
 
-            <div className="p-3 rounded-lg bg-midnight/80 border border-gold/15">
-              <p className="text-xs text-softwhite font-medium mb-1">
-                New Arrivals on Telegram
+            <div className="p-4 rounded-xl bg-midnight/90 border border-gold/25 space-y-2.5">
+              <p className="text-xs font-serif text-softwhite font-medium">
+                New arrivals on Telegram
               </p>
-              <p className="text-[11px] text-stone-muted mb-2">
-                Join our private VIP channel for exclusive releases & prices.
+              <p className="text-[11px] text-stone-muted leading-relaxed">
+                Join the channel for new arrivals, restocks and offers.
               </p>
               <a
-                href={BRAND_CONTACT.telegram}
+                href={BRAND_CONTACT.telegramChannel || BRAND_CONTACT.telegram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-center text-xs py-1.5 px-3 rounded-full bg-gold/15 border border-gold/40 text-gold hover:bg-gold hover:text-midnight transition-colors"
+                aria-label="Join Telegram channel for new arrivals and offers"
+                title="Join Telegram Channel"
+                className="w-full min-h-[44px] px-4 rounded-full bg-gold hover:bg-gold-light text-midnight font-medium text-xs tracking-wider uppercase flex items-center justify-center shadow-glow transition-all"
               >
-                Join VIP Channel
+                Join Channel
               </a>
             </div>
           </div>

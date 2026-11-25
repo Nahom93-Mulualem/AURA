@@ -12,18 +12,21 @@ import (
 	"aura-backend/internal/config"
 	"aura-backend/internal/models"
 	"aura-backend/internal/service"
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/go-chi/chi/v5"
 )
 
 type PerfumeHandler struct {
 	service service.PerfumeService
 	cfg     *config.Config
+	cld     *cloudinary.Cloudinary
 }
 
-func NewPerfumeHandler(service service.PerfumeService, cfg *config.Config) *PerfumeHandler {
+func NewPerfumeHandler(service service.PerfumeService, cfg *config.Config, cld *cloudinary.Cloudinary) *PerfumeHandler {
 	return &PerfumeHandler{
 		service: service,
 		cfg:     cfg,
+		cld:     cld,
 	}
 }
 

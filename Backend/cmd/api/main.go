@@ -15,9 +15,27 @@ import (
 	"aura-backend/internal/repository"
 	"aura-backend/internal/service"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
+
+func initCloudinary(cfg *config.Config) (*cloudinary.Cloudinary, error) {
+	if cfg.CloudinaryCloudName == "" || cfg.CloudinaryAPIKey == "" || cfg.CloudinaryAPISecret == "" {
+		return nil, fmt.Errorf("missing required Cloudinary credentials (cloud name, API key, and API secret must be set)")
+	}
+
+	cld, err := cloudinary.NewFromParams(
+		cfg.CloudinaryCloudName,
+		cfg.CloudinaryAPIKey,
+		cfg.CloudinaryAPISecret,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Cloudinary client: %w", err)
+	}
+
+	return cld, nil
+}
 
 func main() {
 	// 1. Load Configurations
@@ -48,8 +66,14 @@ func main() {
 	authService := service.NewAuthService(adminRepo, cfg.JWTSecret)
 	perfumeService := service.NewPerfumeService(perfumeRepo)
 
+	// 4. Initialize Cloudinary Client (Single instance)
+	cld, err := initCloudinary(cfg)
+	if err != nil {
+		log.Fatalf("Cloudinary startup error: %v\n", err)
+	}
+
 	authHandler := handlers.NewAuthHandler(authService, cfg)
-	perfumeHandler := handlers.NewPerfumeHandler(perfumeService, cfg)
+	perfumeHandler := handlers.NewPerfumeHandler(perfumeService, cfg, cld)
 
 	// 4. Configure Chi Router and Middlewares
 	r := chi.NewRouter()

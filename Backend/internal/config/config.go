@@ -10,20 +10,24 @@ import (
 )
 
 type Config struct {
-	ServerPort       string
-	ServerEnv        string
-	DBHost           string
-	DBPort           string
-	DBUser           string
-	DBPassword       string
-	DBName           string
-	DBSSLMode        string
-	JWTSecret        string
-	UploadDir        string
-	MaxUploadSizeMB  int64
-	CookieDomain     string
-	CookieSecure     bool
-	AllowedOrigins   []string
+	ServerPort          string
+	ServerEnv           string
+	DatabaseURL         string
+	DBHost              string
+	DBPort              string
+	DBUser              string
+	DBPassword          string
+	DBName              string
+	DBSSLMode           string
+	JWTSecret           string
+	UploadDir           string
+	MaxUploadSizeMB     int64
+	CookieDomain        string
+	CookieSecure        bool
+	AllowedOrigins      []string
+	CloudinaryCloudName string
+	CloudinaryAPIKey    string
+	CloudinaryAPISecret string
 }
 
 func LoadConfig() *Config {
@@ -61,20 +65,24 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		ServerPort:      getEnv("SERVER_PORT", "8080"),
-		ServerEnv:       serverEnv,
-		DBHost:          getEnv("DB_HOST", "localhost"),
-		DBPort:          getEnv("DB_PORT", "5432"),
-		DBUser:          getEnv("DB_USER", "postgres"),
-		DBPassword:      getEnv("DB_PASSWORD", "postgres"),
-		DBName:          getEnv("DB_NAME", "aura_db"),
-		DBSSLMode:       getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:       jwtSecret,
-		UploadDir:       getEnv("UPLOAD_DIR", "./uploads"),
-		MaxUploadSizeMB: maxSize,
-		CookieDomain:    getEnv("COOKIE_DOMAIN", ""),
-		CookieSecure:    cookieSecure,
-		AllowedOrigins:  allowedOrigins,
+		ServerPort:          getEnv("SERVER_PORT", "8080"),
+		ServerEnv:           serverEnv,
+		DatabaseURL:         getEnv("DATABASE_URL", ""),
+		DBHost:              getEnv("DB_HOST", "localhost"),
+		DBPort:              getEnv("DB_PORT", "5432"),
+		DBUser:              getEnv("DB_USER", "postgres"),
+		DBPassword:          getEnv("DB_PASSWORD", "postgres"),
+		DBName:              getEnv("DB_NAME", "aura_db"),
+		DBSSLMode:           getEnv("DB_SSLMODE", "disable"),
+		JWTSecret:           jwtSecret,
+		UploadDir:           getEnv("UPLOAD_DIR", "./uploads"),
+		MaxUploadSizeMB:     maxSize,
+		CookieDomain:        getEnv("COOKIE_DOMAIN", ""),
+		CookieSecure:        cookieSecure,
+		AllowedOrigins:      allowedOrigins,
+		CloudinaryCloudName: getEnv("CLOUDINARY_CLOUD_NAME", ""),
+		CloudinaryAPIKey:    getEnv("CLOUDINARY_API_KEY", ""),
+		CloudinaryAPISecret: getEnv("CLOUDINARY_API_SECRET", ""),
 	}
 }
 

@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"aura-backend/internal/config"
 	"aura-backend/internal/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type mockAdminRepo struct {
@@ -149,5 +152,77 @@ func TestEnsureDefaultAdmin_DevelopmentSeedsConvenienceAdmin(t *testing.T) {
 	}
 	if repo.admins[0].Email != "admin@aurabyhani.com" {
 		t.Errorf("Expected admin@aurabyhani.com, got %s", repo.admins[0].Email)
+	}
+}
+
+func TestNewHTTPServer_Timeouts(t *testing.T) {
+	dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	server := newHTTPServer("8080", dummyHandler)
+
+	if server.Addr != ":8080" {
+		t.Errorf("Expected Addr :8080, got %s", server.Addr)
+	}
+	if server.ReadHeaderTimeout != 5*time.Second {
+		t.Errorf("Expected ReadHeaderTimeout 5s, got %v", server.ReadHeaderTimeout)
+	}
+	if server.ReadTimeout != 30*time.Second {
+		t.Errorf("Expected ReadTimeout 30s, got %v", server.ReadTimeout)
+	}
+	if server.WriteTimeout != 60*time.Second {
+		t.Errorf("Expected WriteTimeout 60s, got %v", server.WriteTimeout)
+	}
+	if server.IdleTimeout != 60*time.Second {
+		t.Errorf("Expected IdleTimeout 60s, got %v", server.IdleTimeout)
+	}
+}
+
+func TestEnsureDefaultAdmin_PreservesExactPassword(t *testing.T) {
+	repo := &mockAdminRepo{admins: []*models.Admin{}}
+	cfg := &config.Config{
+		ServerEnv: "production",
+		JWTSecret: "test-secret-32-chars-long-minimum!",
+	}
+
+	// Exact password with leading/trailing spaces
+	exactPassWithSpaces := "  SecretWithLeadingAndTrailingSpaces!  "
+	os.Setenv("INITIAL_ADMIN_EMAIL", "exact.pass@aurabyhani.com")
+	os.Setenv("INITIAL_ADMIN_PASSWORD", exactPassWithSpaces)
+	defer func() {
+		os.Unsetenv("INITIAL_ADMIN_EMAIL")
+		os.Unsetenv("INITIAL_ADMIN_PASSWORD")
+	}()
+
+	ensureDefaultAdmin(nil, repo, cfg)
+
+	if len(repo.admins) != 1 {
+		t.Fatalf("Expected 1 admin, found %d", len(repo.admins))
+	}
+
+	// Verify that bcrypt compares successfully against the EXACT original password
+	err := bcrypt.CompareHashAndPassword([]byte(repo.admins[0].PasswordHash), []byte(exactPassWithSpaces))
+	if err != nil {
+		t.Fatalf("Password verification failed! Leading/trailing spaces were not preserved: %v", err)
+	}
+}
+
+func TestEnsureDefaultAdmin_RejectsWhitespaceOnlyPassword(t *testing.T) {
+	repo := &mockAdminRepo{admins: []*models.Admin{}}
+	cfg := &config.Config{
+		ServerEnv: "production",
+		JWTSecret: "test-secret-32-chars-long-minimum!",
+	}
+
+	// Whitespace-only password (>= 8 spaces)
+	os.Setenv("INITIAL_ADMIN_EMAIL", "whitespace@aurabyhani.com")
+	os.Setenv("INITIAL_ADMIN_PASSWORD", "        ")
+	defer func() {
+		os.Unsetenv("INITIAL_ADMIN_EMAIL")
+		os.Unsetenv("INITIAL_ADMIN_PASSWORD")
+	}()
+
+	ensureDefaultAdmin(nil, repo, cfg)
+
+	if len(repo.admins) != 0 {
+		t.Fatalf("Whitespace-only password should be rejected, but an admin was seeded!")
 	}
 }

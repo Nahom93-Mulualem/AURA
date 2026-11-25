@@ -7,7 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
 	"aura-backend/internal/config"
 	"aura-backend/internal/database"
@@ -95,8 +98,28 @@ func main() {
 
 	// 6. Register API Endpoints
 	r.Route("/api/v1", func(r chi.Router) {
-		// Health check
+		// Health check (verifies service and database readiness without exposing internals)
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+			if db != nil {
+				ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+				defer cancel()
+				if err := db.PingContext(ctx); err != nil {
+					handlers.SendJSON(w, http.StatusServiceUnavailable, map[string]string{
+						"status":   "unhealthy",
+						"service":  "Aura by HANI API",
+						"database": "unavailable",
+					})
+					return
+				}
+			} else if cfg.ServerEnv == "production" {
+				handlers.SendJSON(w, http.StatusServiceUnavailable, map[string]string{
+					"status":   "unhealthy",
+					"service":  "Aura by HANI API",
+					"database": "disconnected",
+				})
+				return
+			}
+
 			handlers.SendJSON(w, http.StatusOK, map[string]string{
 				"status":  "healthy",
 				"service": "Aura by HANI API",
@@ -127,11 +150,47 @@ func main() {
 		})
 	})
 
-	// 7. Start HTTP Server
-	addr := fmt.Sprintf(":%s", cfg.ServerPort)
-	log.Printf("✓ Aura by HANI API listening on http://localhost%s\n", addr)
-	if err := http.ListenAndServe(addr, r); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Server failed to start: %v\n", err)
+	// 7. Start HTTP Server with production timeouts & graceful shutdown
+	server := newHTTPServer(cfg.ServerPort, r)
+
+	serverErr := make(chan error, 1)
+	go func() {
+		log.Printf("✓ Aura by HANI API listening on http://localhost:%s\n", cfg.ServerPort)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			serverErr <- err
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case err := <-serverErr:
+		log.Fatalf("Server startup failed: %v\n", err)
+	case sig := <-stop:
+		log.Printf("Shutdown signal received (%s). Initiating graceful shutdown...\n", sig)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			log.Printf("Graceful shutdown failed: %v. Forcing server close.\n", err)
+			_ = server.Close()
+		} else {
+			log.Println("✓ Aura by HANI API server exited cleanly.")
+		}
+	}
+}
+
+// newHTTPServer configures production-ready connection and transfer timeouts
+func newHTTPServer(port string, handler http.Handler) *http.Server {
+	return &http.Server{
+		Addr:              fmt.Sprintf(":%s", port),
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,  // Prevents Slowloris attacks
+		ReadTimeout:       30 * time.Second, // Allows legitimate 5MB photo uploads without stalling
+		WriteTimeout:      60 * time.Second, // Allows Cloudinary streaming & JSON responses to finish
+		IdleTimeout:       60 * time.Second, // Reclaims idle keep-alive connections
 	}
 }
 
@@ -145,6 +204,9 @@ func ensureDefaultAdmin(db *sql.DB, adminRepo repository.AdminRepository, cfg *c
 	ctx := context.Background()
 	count, err := adminRepo.Count(ctx)
 	if err != nil {
+		if cfg.ServerEnv == "production" {
+			log.Fatalf("Fatal [CRITICAL SECURITY]: Failed to verify administrator state in production database: %v\n", err)
+		}
 		log.Printf("Notice: Could not query existing administrator count: %v\n", err)
 		return
 	}
@@ -157,11 +219,13 @@ func ensureDefaultAdmin(db *sql.DB, adminRepo repository.AdminRepository, cfg *c
 	// Never seed hardcoded default credentials in production
 	if cfg.ServerEnv == "production" {
 		initialEmail := strings.TrimSpace(os.Getenv("INITIAL_ADMIN_EMAIL"))
-		initialPass := strings.TrimSpace(os.Getenv("INITIAL_ADMIN_PASSWORD"))
+		rawPass := os.Getenv("INITIAL_ADMIN_PASSWORD")
 
-		if initialEmail != "" && len(initialPass) >= 8 {
+		// Validate password is not empty, not whitespace-only, and meets minimum 8 character length.
+		// Preserves exact original password without trimming leading/trailing spaces.
+		if initialEmail != "" && strings.TrimSpace(rawPass) != "" && len(rawPass) >= 8 {
 			authSvc := service.NewAuthService(adminRepo, cfg.JWTSecret)
-			if _, regErr := authSvc.RegisterAdmin(ctx, initialEmail, initialPass); regErr == nil {
+			if _, regErr := authSvc.RegisterAdmin(ctx, initialEmail, rawPass); regErr == nil {
 				log.Printf("✓ Seeded initial production administrator: %s\n", initialEmail)
 			} else {
 				log.Printf("Notice: Failed to seed initial production administrator: %v\n", regErr)

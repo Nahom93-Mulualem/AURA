@@ -123,35 +123,63 @@ export default async function PerfumeDetailPage({ params }: PageProps) {
           {/* Scent Notes Pyramid */}
           {perfume.notes && <NotesPyramid notes={perfume.notes} />}
 
-          {/* Specifications Grid */}
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            {perfume.longevity && (
-              <div className="p-3 rounded-lg bg-plum/30 border border-gold/10 flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-gold" />
-                <div>
-                  <span className="text-stone-muted block text-[10px] uppercase">
-                    Longevity
-                  </span>
-                  <span className="text-softwhite font-medium">
-                    {perfume.longevity}
-                  </span>
-                </div>
+          {/* Specifications Grid (Longevity & Best Season - Optional) */}
+          {(() => {
+            const rawLongevity = perfume.longevity?.trim();
+            const rawSeason = perfume.bestSeason?.trim();
+
+            let displayLongevity = rawLongevity;
+            if (rawLongevity) {
+              const lower = rawLongevity.toLowerCase();
+              if (lower.includes("10-14") || lower.includes("12+") || lower.includes("very")) {
+                displayLongevity = "Very long-lasting";
+              } else if (lower.includes("8-12") || lower.includes("8-10") || lower.includes("long")) {
+                displayLongevity = "Long-lasting";
+              } else if (lower.includes("moderate") || lower.includes("4-6") || lower.includes("6-8")) {
+                displayLongevity = "Moderate";
+              }
+            }
+
+            if (!displayLongevity && !rawSeason) return null;
+
+            return (
+              <div
+                className={`grid gap-3 text-xs ${
+                  displayLongevity && rawSeason ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+                }`}
+              >
+                {displayLongevity && (
+                  <div className="p-3 rounded-lg bg-plum/30 border border-gold/10 flex items-start gap-2.5">
+                    <Clock className="w-3.5 h-3.5 text-gold/80 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="text-stone-muted block text-[10px] uppercase tracking-wider">
+                        Longevity
+                      </span>
+                      <span className="text-softwhite font-medium text-xs">
+                        {displayLongevity}
+                      </span>
+                      <span className="text-[10px] text-stone-muted/80 block mt-0.5 italic">
+                        varies by skin
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {rawSeason && (
+                  <div className="p-3 rounded-lg bg-plum/30 border border-gold/10 flex items-start gap-2.5">
+                    <Calendar className="w-3.5 h-3.5 text-gold/80 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="text-stone-muted block text-[10px] uppercase tracking-wider">
+                        Best Season
+                      </span>
+                      <span className="text-softwhite font-medium text-xs">
+                        {rawSeason}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {perfume.bestSeason && (
-              <div className="p-3 rounded-lg bg-plum/30 border border-gold/10 flex items-center gap-2.5">
-                <Calendar className="w-4 h-4 text-gold" />
-                <div>
-                  <span className="text-stone-muted block text-[10px] uppercase">
-                    Best Season
-                  </span>
-                  <span className="text-softwhite font-medium">
-                    {perfume.bestSeason}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Order Action Buttons (Desktop and Tablet) */}
           <div className="space-y-3 pt-2">

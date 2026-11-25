@@ -7,80 +7,83 @@ interface NotesPyramidProps {
 }
 
 export default function NotesPyramid({ notes }: NotesPyramidProps) {
+  const hasTop = notes.top && notes.top.length > 0;
+  const hasHeart = notes.heart && notes.heart.length > 0;
+  const hasBase = notes.base && notes.base.length > 0;
+
+  if (!hasTop && !hasHeart && !hasBase) return null;
+
   return (
-    <div className="space-y-4 rounded-card bg-midnight/60 border border-gold/20 p-5 sm:p-6">
-      <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-        <h3 className="font-serif text-lg text-softwhite flex items-center gap-2">
-          <span>Scent Pyramid</span>
+    <div className="rounded-xl bg-plum/40 border border-gold/15 p-4 sm:p-5">
+      <div className="flex items-center justify-between border-b border-gold/10 pb-2.5 mb-1">
+        <h3 className="font-serif text-base sm:text-lg text-softwhite">
+          Fragrance Notes
         </h3>
-        <span className="text-[11px] uppercase tracking-widest text-gold">
-          Olfactory Structure
+        <span className="text-[11px] uppercase tracking-widest text-gold/80 font-medium">
+          Scent notes
         </span>
       </div>
 
-      <div className="space-y-4">
+      <div className="divide-y divide-gold/10">
         {/* Top Notes */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg bg-plum/40 border border-gold/10">
-          <div className="flex items-center gap-2 sm:w-28 text-xs font-semibold text-gold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Top Notes</span>
+        {hasTop && (
+          <div className="py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:w-28 text-[11px] uppercase tracking-wider text-stone-muted font-medium flex-shrink-0">
+              <Sparkles className="w-3 h-3 text-gold/80 flex-shrink-0" />
+              <span>Top Notes</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 flex-1">
+              {notes.top.map((note) => (
+                <span
+                  key={note}
+                  className="px-2.5 py-0.5 text-xs rounded-full bg-midnight/60 border border-gold/15 text-softwhite/90"
+                >
+                  {note}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-1.5 flex-1">
-            {notes.top.map((note) => (
-              <span
-                key={note}
-                className="px-2.5 py-1 text-xs rounded-full bg-midnight/80 border border-gold/20 text-softwhite font-medium"
-              >
-                {note}
-              </span>
-            ))}
-          </div>
-          <span className="text-[10px] text-stone-muted sm:text-right hidden sm:block">
-            First 15 mins
-          </span>
-        </div>
+        )}
 
         {/* Heart Notes */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg bg-plum/60 border border-rose-dust/20">
-          <div className="flex items-center gap-2 sm:w-28 text-xs font-semibold text-rose-dust uppercase tracking-wider">
-            <Heart className="w-3.5 h-3.5" />
-            <span>Heart Notes</span>
+        {hasHeart && (
+          <div className="py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:w-28 text-[11px] uppercase tracking-wider text-stone-muted font-medium flex-shrink-0">
+              <Heart className="w-3 h-3 text-rose-dust/80 flex-shrink-0" />
+              <span>Heart Notes</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 flex-1">
+              {notes.heart.map((note) => (
+                <span
+                  key={note}
+                  className="px-2.5 py-0.5 text-xs rounded-full bg-midnight/60 border border-gold/15 text-softwhite/90"
+                >
+                  {note}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-1.5 flex-1">
-            {notes.heart.map((note) => (
-              <span
-                key={note}
-                className="px-2.5 py-1 text-xs rounded-full bg-midnight/80 border border-rose-dust/30 text-softwhite font-medium"
-              >
-                {note}
-              </span>
-            ))}
-          </div>
-          <span className="text-[10px] text-stone-muted sm:text-right hidden sm:block">
-            2 to 6 hours
-          </span>
-        </div>
+        )}
 
         {/* Base Notes */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg bg-plum/80 border border-gold/20">
-          <div className="flex items-center gap-2 sm:w-28 text-xs font-semibold text-gold-light uppercase tracking-wider">
-            <Flame className="w-3.5 h-3.5" />
-            <span>Base Notes</span>
+        {hasBase && (
+          <div className="py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:w-28 text-[11px] uppercase tracking-wider text-stone-muted font-medium flex-shrink-0">
+              <Flame className="w-3 h-3 text-gold-light/80 flex-shrink-0" />
+              <span>Base Notes</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 flex-1">
+              {notes.base.map((note) => (
+                <span
+                  key={note}
+                  className="px-2.5 py-0.5 text-xs rounded-full bg-midnight/60 border border-gold/15 text-softwhite/90"
+                >
+                  {note}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-1.5 flex-1">
-            {notes.base.map((note) => (
-              <span
-                key={note}
-                className="px-2.5 py-1 text-xs rounded-full bg-midnight/80 border border-gold/30 text-softwhite font-medium"
-              >
-                {note}
-              </span>
-            ))}
-          </div>
-          <span className="text-[10px] text-stone-muted sm:text-right hidden sm:block">
-            Lingers 8-12+ hrs
-          </span>
-        </div>
+        )}
       </div>
     </div>
   );

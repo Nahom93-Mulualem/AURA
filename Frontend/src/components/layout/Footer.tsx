@@ -10,7 +10,6 @@ import {
   Sparkles,
   ArrowUp,
   Heart,
-  Shield,
 } from "lucide-react";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import TikTokIcon from "@/components/ui/TikTokIcon";
@@ -66,15 +65,6 @@ export default function Footer() {
               <li>
                 <Link href="/contact" className="hover:text-gold transition-colors">
                   Contact Channels & FAQ
-                </Link>
-              </li>
-              <li className="pt-2 border-t border-midnight/60">
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-1.5 text-xs text-stone-muted hover:text-gold transition-colors"
-                >
-                  <Shield className="w-3.5 h-3.5 text-gold/60" />
-                  <span>Admin Studio Portal</span>
                 </Link>
               </li>
             </ul>

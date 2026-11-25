@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Send, Instagram, Shield } from "lucide-react";
+import { Menu, X, Send, Instagram } from "lucide-react";
 import AuraLogo from "@/components/ui/AuraLogo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
@@ -145,14 +145,6 @@ export default function Navbar() {
                 </Link>
               );
             })}
-
-            <Link
-              href="/admin"
-              className="text-sm font-serif tracking-wide text-stone-muted hover:text-gold flex items-center gap-2 pt-2"
-            >
-              <Shield className="w-4 h-4 text-gold/60" />
-              <span>Admin Studio Portal</span>
-            </Link>
           </div>
 
           {/* Mobile Social & Direct Actions */}

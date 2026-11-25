@@ -85,7 +85,7 @@ export default function AdminPage() {
   const [formTopNotes, setFormTopNotes] = useState("");
   const [formHeartNotes, setFormHeartNotes] = useState("");
   const [formBaseNotes, setFormBaseNotes] = useState("");
-  const [formLongevity, setFormLongevity] = useState("10-14 hours");
+  const [formLongevity, setFormLongevity] = useState("Long-lasting");
   const [formBestSeason, setFormBestSeason] = useState("All Seasons");
   const [formImageUrl, setFormImageUrl] = useState("");
   const [formImageFile, setFormImageFile] = useState<File | null>(null);
@@ -189,8 +189,8 @@ export default function AdminPage() {
     setFormTopNotes(item.notes?.top ? item.notes.top.join(", ") : "");
     setFormHeartNotes(item.notes?.heart ? item.notes.heart.join(", ") : "");
     setFormBaseNotes(item.notes?.base ? item.notes.base.join(", ") : "");
-    setFormLongevity(item.longevity || "10-14 hours");
-    setFormBestSeason(item.bestSeason || "All Seasons");
+    setFormLongevity(item.longevity || "");
+    setFormBestSeason(item.bestSeason || "");
     setFormImageUrl(item.images?.[0] || "");
     setFormImageFile(null);
     setFormImagePreview(item.images?.[0] || null);
@@ -211,8 +211,8 @@ export default function AdminPage() {
     setFormTopNotes("");
     setFormHeartNotes("");
     setFormBaseNotes("");
-    setFormLongevity("10-14 hours");
-    setFormBestSeason("All Seasons");
+    setFormLongevity("");
+    setFormBestSeason("");
     setFormImageUrl("");
     setFormImageFile(null);
     setFormImagePreview(null);
@@ -901,6 +901,37 @@ export default function AdminPage() {
                     onChange={(e) => setFormBaseNotes(e.target.value)}
                     placeholder="Base (e.g. Oud)"
                     className="w-full p-2 rounded bg-midnight border border-gold/20 text-softwhite focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Longevity & Best Season (Optional) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-gold/15">
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Longevity (Optional)
+                  </label>
+                  <select
+                    value={formLongevity}
+                    onChange={(e) => setFormLongevity(e.target.value)}
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  >
+                    <option value="">None / Hide</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Long-lasting">Long-lasting</option>
+                    <option value="Very long-lasting">Very long-lasting</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Best Season (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formBestSeason}
+                    onChange={(e) => setFormBestSeason(e.target.value)}
+                    placeholder="e.g. All Seasons, Fall / Winter"
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
                   />
                 </div>
               </div>

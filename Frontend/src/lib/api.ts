@@ -1,4 +1,4 @@
-import { Perfume, PerfumeCategory, PerfumeStatus } from "@/types/perfume";
+import { Perfume, PerfumeCategory, PerfumeStatus, FragranceType } from "@/types/perfume";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
@@ -7,9 +7,11 @@ export interface PerfumePayload {
   subtitle?: string;
   tagline?: string;
   description: string;
+  shortDescription?: string;
   price: number;
   sizeMl: string;
   category: PerfumeCategory;
+  fragranceType?: FragranceType | string;
   status: PerfumeStatus;
   featured?: boolean;
   notes: {
@@ -53,11 +55,13 @@ async function handleResponseError(res: Response, defaultMsg: string): Promise<n
 // 1. Fetch all perfumes
 export async function fetchPerfumes(params?: {
   category?: string;
+  fragrance_type?: string;
   status?: string;
   search?: string;
 }): Promise<Perfume[]> {
   const query = new URLSearchParams();
   if (params?.category && params.category !== "all") query.set("category", params.category);
+  if (params?.fragrance_type && params.fragrance_type !== "all") query.set("fragrance_type", params.fragrance_type);
   if (params?.status && params.status !== "all") query.set("status", params.status);
   if (params?.search) query.set("search", params.search);
 

@@ -4,13 +4,17 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, Sparkles, Send } from "lucide-react";
+import { ArrowUpRight, AlignLeft, Send } from "lucide-react";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
-import { Perfume } from "@/types/perfume";
+import {
+  Perfume,
+  CATEGORY_LABELS,
+  FRAGRANCE_TYPE_LABELS,
+  FragranceType,
+} from "@/types/perfume";
 import { BRAND_CONTACT } from "@/data/mockPerfumes";
 import { formatPrice } from "@/lib/utils";
 import ParticleField from "@/components/perfume/ParticleField";
-import NotesReveal from "@/components/perfume/NotesReveal";
 
 interface PerfumeCardProps {
   perfume: Perfume;
@@ -18,11 +22,12 @@ interface PerfumeCardProps {
 }
 
 export default function PerfumeCard({ perfume, priority = false }: PerfumeCardProps) {
-  const [viewMode, setViewMode] = useState<"bottle" | "notes">("bottle");
+  const [viewMode, setViewMode] = useState<"bottle" | "description">("bottle");
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const fallbackImage = "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop";
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop";
   const primaryImage =
     perfume?.images && perfume.images.length > 0 && perfume.images[0]?.trim()
       ? perfume.images[0].trim()
@@ -46,7 +51,6 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (prefersReducedMotion || !cardRef.current) return;
-    // Don't calculate 3D tilt on mobile/touch devices
     if (window.innerWidth < 1024) return;
 
     const rect = cardRef.current.getBoundingClientRect();
@@ -61,7 +65,7 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
     mouseY.set(0);
   };
 
-  const isNotesView = viewMode === "notes";
+  const isDescriptionView = viewMode === "description";
 
   const getStatusBadge = () => {
     switch (perfume.status) {
@@ -93,6 +97,21 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
   const telegramUrl = `${BRAND_CONTACT.telegram}?text=${orderMsg}`;
   const whatsappUrl = `${BRAND_CONTACT.whatsapp}?text=${orderMsg}`;
 
+  // Build specifications string: [fragrance_type, category, size]
+  const typeLabel = perfume.fragranceType
+    ? FRAGRANCE_TYPE_LABELS[perfume.fragranceType as FragranceType] || perfume.fragranceType
+    : "";
+  const categoryLabel = CATEGORY_LABELS[perfume.category] || perfume.category;
+  const sizeFormatted = String(perfume.sizeMl).includes("ml")
+    ? perfume.sizeMl
+    : `${perfume.sizeMl}ml`;
+  const specsText = [typeLabel, categoryLabel, sizeFormatted].filter(Boolean).join(" • ");
+
+  const cardDescription =
+    perfume.shortDescription?.trim() ||
+    perfume.description?.trim() ||
+    "An artisanal formulation crafted with rare botanical essences.";
+
   return (
     <motion.div
       ref={cardRef}
@@ -106,17 +125,17 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
       }}
       className="group relative rounded-card bg-plum/70 hover:bg-plum border border-gold/15 hover:border-gold/40 transition-colors duration-300 overflow-hidden shadow-sm hover:shadow-glow flex flex-col justify-between"
     >
-      {/* 4:5 Aspect Ratio Image & Notes Container */}
+      {/* 4:5 Aspect Ratio Image & Description Container */}
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-midnight/80">
-        {/* Top Badges: Status (Left) & Bottle/Notes Toggle (Right) */}
+        {/* Top Badges: Status (Left) & Bottle/Description Toggle (Right) */}
         <div className="absolute top-3 left-3 right-3 z-40 flex items-center justify-between pointer-events-none">
           <div className="pointer-events-auto">{getStatusBadge()}</div>
 
-          {/* Interactive Bottle / Notes Toggle Switch */}
+          {/* Interactive Bottle / Description Toggle Switch */}
           <div
             className="pointer-events-auto inline-flex items-center p-0.5 rounded-full bg-midnight/80 backdrop-blur-md border border-gold/30 shadow-md"
             role="group"
-            aria-label="View toggle for bottle or scent notes"
+            aria-label="View toggle for bottle or description"
           >
             <button
               type="button"
@@ -132,31 +151,31 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
             </button>
             <button
               type="button"
-              aria-pressed={viewMode === "notes"}
-              onClick={() => setViewMode("notes")}
+              aria-pressed={viewMode === "description"}
+              onClick={() => setViewMode("description")}
               className={`min-h-[28px] px-2.5 rounded-full text-[10px] uppercase tracking-wider font-medium transition-all duration-300 flex items-center gap-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-gold ${
-                viewMode === "notes"
+                viewMode === "description"
                   ? "bg-gold text-midnight font-semibold shadow-sm"
                   : "text-softwhite/70 hover:text-gold"
               }`}
             >
-              <Sparkles className="w-2.5 h-2.5" />
-              <span>Notes</span>
+              <AlignLeft className="w-2.5 h-2.5" />
+              <span>Description</span>
             </button>
           </div>
         </div>
 
-        {/* Floating Particles (Mist/Petals/Sparkles) when Notes view is active */}
+        {/* Floating Particles when Description view is active */}
         <AnimatePresence>
-          {isNotesView && <ParticleField />}
+          {isDescriptionView && <ParticleField />}
         </AnimatePresence>
 
-        {/* Perfume Bottle Image (Gently lifts and fades on toggle) */}
+        {/* Perfume Bottle Image */}
         <motion.div
           animate={{
-            y: isNotesView ? -20 : 0,
-            opacity: isNotesView ? 0.12 : 1,
-            scale: isNotesView ? 1.04 : 1,
+            y: isDescriptionView ? -20 : 0,
+            opacity: isDescriptionView ? 0.12 : 1,
+            scale: isDescriptionView ? 1.04 : 1,
           }}
           transition={
             prefersReducedMotion
@@ -177,19 +196,51 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
             className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
           />
 
-          {/* Soft Bottom Shadow Gradient */}
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-plum via-plum/40 to-transparent pointer-events-none" />
         </motion.div>
 
-        {/* Notes Reveal Overlay (Staggered Olfactory Structure) */}
+        {/* Description Reveal Overlay */}
         <AnimatePresence>
-          {isNotesView && (
-            <NotesReveal notes={perfume.notes} perfumeName={perfume.name} />
+          {isDescriptionView && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="absolute inset-0 z-30 flex flex-col justify-between p-5 bg-midnight/90 backdrop-blur-md rounded-t-card overflow-hidden"
+            >
+              <div className="border-b border-gold/20 pb-2">
+                <span className="text-[10px] uppercase tracking-[0.25em] text-gold font-medium block">
+                  Fragrance Story
+                </span>
+                <h4 className="font-serif text-base text-softwhite font-medium truncate">
+                  {perfume.name}
+                </h4>
+              </div>
+
+              <div className="my-auto py-2">
+                <p className="font-serif text-xs sm:text-sm text-softwhite/95 leading-relaxed italic line-clamp-3 sm:line-clamp-4">
+                  &ldquo;{cardDescription}&rdquo;
+                </p>
+                <Link
+                  href={`/perfumes/${perfume.slug}`}
+                  className="inline-flex items-center gap-1 mt-3 text-[10px] uppercase tracking-wider text-gold hover:text-gold-light transition-colors"
+                >
+                  <span>Explore full notes</span>
+                  <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              </div>
+
+              <div className="pt-2 border-t border-gold/15 flex items-center justify-between text-[10px] text-stone-muted">
+                <span>Toggle back to view bottle</span>
+                <span className="text-gold uppercase tracking-wider">Aura Atelier</span>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
 
         {/* Desktop Quick Link Pill on Bottle Hover */}
-        {!isNotesView && (
+        {!isDescriptionView && (
           <Link
             href={`/perfumes/${perfume.slug}`}
             className="hidden md:flex absolute bottom-3 inset-x-3 items-center justify-center gap-1 py-2 rounded-full bg-midnight/90 border border-gold/40 text-gold text-xs uppercase tracking-widest opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-glow focus:opacity-100 focus:translate-y-0"
@@ -222,11 +273,11 @@ export default function PerfumeCard({ perfume, priority = false }: PerfumeCardPr
         </p>
 
         {/* Specs & Quick Action Buttons */}
-        <div className="pt-2 mt-1 border-t border-gold/10 flex items-center justify-between text-[11px] text-stone-muted">
-          <span className="capitalize">
-            {perfume.category} • {String(perfume.sizeMl).includes("ml") ? perfume.sizeMl : `${perfume.sizeMl}ml`}
+        <div className="pt-2 mt-1 border-t border-gold/10 flex items-center justify-between gap-2 text-[11px] text-stone-muted">
+          <span className="capitalize truncate min-w-0" title={specsText}>
+            {specsText}
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <a
               href={telegramUrl}
               target="_blank"

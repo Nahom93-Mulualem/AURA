@@ -16,6 +16,7 @@ import PerfumeGallery from "@/components/perfume/PerfumeGallery";
 import NotesPyramid from "@/components/perfume/NotesPyramid";
 import StickyOrderBar from "@/components/perfume/StickyOrderBar";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
+import FragranceTypeBadge from "@/components/perfume/FragranceTypeBadge";
 import TrustBadges from "@/components/ui/TrustBadges";
 
 // Force dynamic server rendering so any newly created perfume in PostgreSQL loads immediately
@@ -76,13 +77,11 @@ export default async function PerfumeDetailPage({ params }: PageProps) {
         {/* Right: Perfume Details */}
         <div className="lg:col-span-6 space-y-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-xs uppercase tracking-[0.2em] text-gold font-medium capitalize">
-                {perfume.category} Extrait
-              </span>
-              <span className="w-1 h-1 rounded-full bg-gold/40" />
-              <span className="text-xs text-stone-muted">{perfume.sizeMl}</span>
-            </div>
+            <FragranceTypeBadge
+              category={perfume.category}
+              fragranceType={perfume.fragranceType}
+              sizeMl={perfume.sizeMl}
+            />
 
             <h1 className="font-serif text-3xl sm:text-5xl text-softwhite font-normal mb-2">
               {perfume.name}

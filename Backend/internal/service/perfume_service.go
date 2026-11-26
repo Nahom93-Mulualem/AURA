@@ -13,7 +13,7 @@ import (
 )
 
 type PerfumeService interface {
-	ListPerfumes(ctx context.Context, category, status, search string) ([]models.Perfume, error)
+	ListPerfumes(ctx context.Context, category, status, search, fragranceType string) ([]models.Perfume, error)
 	GetPerfume(ctx context.Context, slug string) (*models.Perfume, error)
 	CreatePerfume(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
 	UpdatePerfume(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
@@ -21,6 +21,9 @@ type PerfumeService interface {
 	DeletePerfume(ctx context.Context, id string) error
 	ToggleStatus(ctx context.Context, id string) (models.PerfumeStatus, error)
 	ValidateImageUpload(fileHeader *multipart.FileHeader, maxSizeMB int64) error
+	NormalizeCategory(cat models.PerfumeCategory) (models.PerfumeCategory, error)
+	ValidateFragranceType(ft string) (*models.FragranceType, error)
+	ValidateShortDescription(sd string) (*string, error)
 }
 
 type perfumeService struct {
@@ -31,8 +34,66 @@ func NewPerfumeService(repo repository.PerfumeRepository) PerfumeService {
 	return &perfumeService{repo: repo}
 }
 
-func (s *perfumeService) ListPerfumes(ctx context.Context, category, status, search string) ([]models.Perfume, error) {
-	return s.repo.GetAll(ctx, category, status, search)
+// NormalizeCategory normalizes category inputs (feminine -> women, masculine -> men)
+func (s *perfumeService) NormalizeCategory(cat models.PerfumeCategory) (models.PerfumeCategory, error) {
+	lower := strings.ToLower(strings.TrimSpace(string(cat)))
+	switch lower {
+	case "women", "feminine":
+		return models.CategoryWomen, nil
+	case "men", "masculine":
+		return models.CategoryMen, nil
+	case "unisex", "":
+		return models.CategoryUnisex, nil
+	default:
+		return "", fmt.Errorf("invalid category '%s'. Must be Women, Men, or Unisex", cat)
+	}
+}
+
+// ValidateFragranceType validates optional fragrance type
+func (s *perfumeService) ValidateFragranceType(ft string) (*models.FragranceType, error) {
+	trimmed := strings.ToLower(strings.TrimSpace(ft))
+	if trimmed == "" || trimmed == "none" {
+		return nil, nil
+	}
+	switch models.FragranceType(trimmed) {
+	case models.FragranceTypeEauDeParfum, models.FragranceTypeEauDeToilette,
+		models.FragranceTypeExtraitDeParfum, models.FragranceTypePerfumeOil,
+		models.FragranceTypeBakhoor, models.FragranceTypeBodySplash:
+		val := models.FragranceType(trimmed)
+		return &val, nil
+	default:
+		return nil, fmt.Errorf("invalid fragrance_type '%s'", ft)
+	}
+}
+
+// ValidateShortDescription trims and validates that short description does not exceed 140 Unicode code points
+func (s *perfumeService) ValidateShortDescription(sd string) (*string, error) {
+	trimmed := strings.TrimSpace(sd)
+	if trimmed == "" {
+		return nil, nil
+	}
+	if len([]rune(trimmed)) > 140 {
+		return nil, errors.New("short description cannot exceed 140 characters")
+	}
+	return &trimmed, nil
+}
+
+func (s *perfumeService) ListPerfumes(ctx context.Context, category, status, search, fragranceType string) ([]models.Perfume, error) {
+	normCat := strings.ToLower(strings.TrimSpace(category))
+	if normCat != "" && normCat != "all" {
+		if _, err := s.NormalizeCategory(models.PerfumeCategory(normCat)); err != nil {
+			return nil, err
+		}
+	}
+
+	normType := strings.ToLower(strings.TrimSpace(fragranceType))
+	if normType != "" && normType != "all" {
+		if _, err := s.ValidateFragranceType(normType); err != nil {
+			return nil, err
+		}
+	}
+
+	return s.repo.GetAll(ctx, category, status, search, fragranceType)
 }
 
 func (s *perfumeService) GetPerfume(ctx context.Context, slug string) (*models.Perfume, error) {
@@ -57,9 +118,6 @@ func (s *perfumeService) CreatePerfume(ctx context.Context, p *models.Perfume) (
 	if p.Price <= 0 {
 		return nil, errors.New("price must be greater than 0 ETB")
 	}
-	if p.Category == "" {
-		p.Category = models.CategoryUnisex
-	}
 	if p.Status == "" {
 		p.Status = models.StatusAvailable
 	}
@@ -67,19 +125,32 @@ func (s *perfumeService) CreatePerfume(ctx context.Context, p *models.Perfume) (
 		p.SizeMl = "100ml"
 	}
 
-	// 2. Validate category
-	validCategory := false
-	for _, c := range []models.PerfumeCategory{models.CategoryUnisex, models.CategoryFeminine, models.CategoryMasculine} {
-		if p.Category == c {
-			validCategory = true
-			break
-		}
+	// 2. Normalize and validate category
+	normalizedCat, err := s.NormalizeCategory(p.Category)
+	if err != nil {
+		return nil, err
 	}
-	if !validCategory {
-		return nil, fmt.Errorf("invalid category: %s", p.Category)
+	p.Category = normalizedCat
+
+	// 3. Validate fragrance type
+	if p.FragranceType != nil {
+		validatedType, err := s.ValidateFragranceType(string(*p.FragranceType))
+		if err != nil {
+			return nil, err
+		}
+		p.FragranceType = validatedType
 	}
 
-	// 3. Delegate to repository
+	// 4. Validate short description
+	if p.ShortDescription != nil {
+		validatedShort, err := s.ValidateShortDescription(*p.ShortDescription)
+		if err != nil {
+			return nil, err
+		}
+		p.ShortDescription = validatedShort
+	}
+
+	// 5. Delegate to repository
 	return s.repo.Create(ctx, p)
 }
 
@@ -112,17 +183,12 @@ func (s *perfumeService) UpdatePerfume(ctx context.Context, p *models.Perfume) (
 		return nil, errors.New("size cannot be empty")
 	}
 
-	// 3. Validate category
-	validCategory := false
-	for _, c := range []models.PerfumeCategory{models.CategoryUnisex, models.CategoryFeminine, models.CategoryMasculine} {
-		if p.Category == c {
-			validCategory = true
-			break
-		}
+	// 3. Normalize and validate category
+	normalizedCat, err := s.NormalizeCategory(p.Category)
+	if err != nil {
+		return nil, err
 	}
-	if !validCategory {
-		return nil, fmt.Errorf("invalid category '%s'. Must be unisex, feminine, or masculine", p.Category)
-	}
+	p.Category = normalizedCat
 
 	// 4. Validate status
 	validStatus := false
@@ -134,6 +200,24 @@ func (s *perfumeService) UpdatePerfume(ctx context.Context, p *models.Perfume) (
 	}
 	if !validStatus {
 		return nil, fmt.Errorf("invalid status '%s'. Must be available, sold_out, or new", p.Status)
+	}
+
+	// 5. Validate fragrance type
+	if p.FragranceType != nil {
+		validatedType, err := s.ValidateFragranceType(string(*p.FragranceType))
+		if err != nil {
+			return nil, err
+		}
+		p.FragranceType = validatedType
+	}
+
+	// 6. Validate short description
+	if p.ShortDescription != nil {
+		validatedShort, err := s.ValidateShortDescription(*p.ShortDescription)
+		if err != nil {
+			return nil, err
+		}
+		p.ShortDescription = validatedShort
 	}
 
 	// Update slug if empty or name changed
@@ -186,6 +270,19 @@ func (s *perfumeService) PatchPerfume(ctx context.Context, id string, req *model
 		existing.Description = trimmedDesc
 	}
 
+	if req.ShortDescription != nil {
+		trimmedShort := strings.TrimSpace(*req.ShortDescription)
+		if trimmedShort == "" {
+			existing.ShortDescription = nil // Nullification
+		} else {
+			val, err := s.ValidateShortDescription(trimmedShort)
+			if err != nil {
+				return nil, err
+			}
+			existing.ShortDescription = val
+		}
+	}
+
 	if req.Price != nil {
 		if *req.Price <= 0 {
 			return nil, errors.New("price must be greater than 0 ETB")
@@ -202,17 +299,24 @@ func (s *perfumeService) PatchPerfume(ctx context.Context, id string, req *model
 	}
 
 	if req.Category != nil {
-		validCategory := false
-		for _, c := range []models.PerfumeCategory{models.CategoryUnisex, models.CategoryFeminine, models.CategoryMasculine} {
-			if *req.Category == c {
-				validCategory = true
-				break
+		normCat, err := s.NormalizeCategory(*req.Category)
+		if err != nil {
+			return nil, err
+		}
+		existing.Category = normCat
+	}
+
+	if req.FragranceType != nil {
+		trimmedType := strings.TrimSpace(*req.FragranceType)
+		if trimmedType == "" {
+			existing.FragranceType = nil // Nullification
+		} else {
+			val, err := s.ValidateFragranceType(trimmedType)
+			if err != nil {
+				return nil, err
 			}
+			existing.FragranceType = val
 		}
-		if !validCategory {
-			return nil, fmt.Errorf("invalid category '%s'. Must be unisex, feminine, or masculine", *req.Category)
-		}
-		existing.Category = *req.Category
 	}
 
 	if req.Status != nil {
@@ -254,7 +358,7 @@ func (s *perfumeService) PatchPerfume(ctx context.Context, id string, req *model
 
 func (s *perfumeService) DeletePerfume(ctx context.Context, id string) error {
 	if strings.TrimSpace(id) == "" {
-		return errors.New("perfume id is required for delete")
+		return errors.New("perfume id cannot be empty")
 	}
 	existing, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -263,51 +367,50 @@ func (s *perfumeService) DeletePerfume(ctx context.Context, id string) error {
 	if existing == nil {
 		return fmt.Errorf("perfume not found with id: %s", id)
 	}
-
 	return s.repo.Delete(ctx, id)
 }
 
 func (s *perfumeService) ToggleStatus(ctx context.Context, id string) (models.PerfumeStatus, error) {
+	if strings.TrimSpace(id) == "" {
+		return "", errors.New("perfume id cannot be empty")
+	}
 	perfume, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return "", err
 	}
 	if perfume == nil {
-		return "", errors.New("perfume not found")
+		return "", fmt.Errorf("perfume not found with id: %s", id)
 	}
 
 	newStatus := models.StatusAvailable
-	if perfume.Status == models.StatusAvailable || perfume.Status == models.StatusNew {
+	if perfume.Status == models.StatusAvailable {
 		newStatus = models.StatusSoldOut
 	}
 
 	if err := s.repo.UpdateStatus(ctx, id, newStatus); err != nil {
 		return "", err
 	}
+
 	return newStatus, nil
 }
 
-// ValidateImageUpload validates file extension, MIME type, and size (satisfies AGENTS.md rule)
 func (s *perfumeService) ValidateImageUpload(fileHeader *multipart.FileHeader, maxSizeMB int64) error {
-	// 1. Validate file size
-	maxBytes := maxSizeMB * 1024 * 1024
-	if fileHeader.Size > maxBytes {
-		return fmt.Errorf("file size (%d MB) exceeds maximum allowed limit of %d MB", fileHeader.Size/(1024*1024), maxSizeMB)
+	if fileHeader == nil {
+		return errors.New("no file provided")
 	}
-
-	// 2. Validate file extension
+	if fileHeader.Size > maxSizeMB*1024*1024 {
+		return fmt.Errorf("file size exceeds maximum allowed size of %dMB", maxSizeMB)
+	}
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	allowedExtensions := map[string]bool{
+	validExtensions := map[string]bool{
 		".jpg":  true,
 		".jpeg": true,
 		".png":  true,
 		".webp": true,
 		".avif": true,
 	}
-
-	if !allowedExtensions[ext] {
-		return fmt.Errorf("unsupported image format '%s'. Allowed formats: webp, jpg, png, avif", ext)
+	if !validExtensions[ext] {
+		return fmt.Errorf("invalid file format '%s'. Allowed formats: JPG, JPEG, PNG, WEBP, AVIF", ext)
 	}
-
 	return nil
 }

@@ -12,7 +12,7 @@ import (
 )
 
 type PerfumeRepository interface {
-	GetAll(ctx context.Context, category string, status string, search string) ([]models.Perfume, error)
+	GetAll(ctx context.Context, category string, status string, search string, fragranceType string) ([]models.Perfume, error)
 	GetBySlug(ctx context.Context, slug string) (*models.Perfume, error)
 	GetByID(ctx context.Context, id string) (*models.Perfume, error)
 	Create(ctx context.Context, p *models.Perfume) (*models.Perfume, error)
@@ -30,25 +30,43 @@ func NewPerfumeRepository(db *sql.DB) PerfumeRepository {
 }
 
 // GetAll fetches all perfumes using safe parameterized SQL filters
-func (r *postgresPerfumeRepo) GetAll(ctx context.Context, category string, status string, search string) ([]models.Perfume, error) {
+func (r *postgresPerfumeRepo) GetAll(ctx context.Context, category string, status string, search string, fragranceType string) ([]models.Perfume, error) {
 	query := `
 		SELECT id, name, slug, subtitle, tagline, description, price, size_ml, category, status,
-		       featured, top_notes, heart_notes, base_notes, images, longevity, best_season, created_at, updated_at
+		       featured, top_notes, heart_notes, base_notes, images, longevity, best_season,
+		       fragrance_type, short_description, created_at, updated_at
 		FROM perfumes
 		WHERE 1=1
 	`
 	args := []interface{}{}
 	argIdx := 1
 
-	if category != "" && category != "all" {
-		query += fmt.Sprintf(" AND category = $%d", argIdx)
-		args = append(args, category)
-		argIdx++
+	normCat := strings.ToLower(strings.TrimSpace(category))
+	if normCat != "" && normCat != "all" {
+		switch normCat {
+		case "women", "feminine":
+			query += " AND (category = 'women' OR category = 'feminine')"
+		case "men", "masculine":
+			query += " AND (category = 'men' OR category = 'masculine')"
+		case "unisex":
+			query += " AND category = 'unisex'"
+		default:
+			query += fmt.Sprintf(" AND category = $%d", argIdx)
+			args = append(args, category)
+			argIdx++
+		}
 	}
 
 	if status != "" && status != "all" {
 		query += fmt.Sprintf(" AND status = $%d", argIdx)
 		args = append(args, status)
+		argIdx++
+	}
+
+	normType := strings.ToLower(strings.TrimSpace(fragranceType))
+	if normType != "" && normType != "all" {
+		query += fmt.Sprintf(" AND fragrance_type = $%d", argIdx)
+		args = append(args, normType)
 		argIdx++
 	}
 
@@ -73,7 +91,8 @@ func (r *postgresPerfumeRepo) GetAll(ctx context.Context, category string, statu
 			&row.ID, &row.Name, &row.Slug, &row.Subtitle, &row.Tagline, &row.Description,
 			&row.Price, &row.SizeMl, &row.Category, &row.Status, &row.Featured,
 			&row.TopNotes, &row.HeartNotes, &row.BaseNotes, &row.Images,
-			&row.Longevity, &row.BestSeason, &row.CreatedAt, &row.UpdatedAt,
+			&row.Longevity, &row.BestSeason, &row.FragranceType, &row.ShortDescription,
+			&row.CreatedAt, &row.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan perfume row: %w", err)
@@ -88,7 +107,8 @@ func (r *postgresPerfumeRepo) GetAll(ctx context.Context, category string, statu
 func (r *postgresPerfumeRepo) GetBySlug(ctx context.Context, slug string) (*models.Perfume, error) {
 	query := `
 		SELECT id, name, slug, subtitle, tagline, description, price, size_ml, category, status,
-		       featured, top_notes, heart_notes, base_notes, images, longevity, best_season, created_at, updated_at
+		       featured, top_notes, heart_notes, base_notes, images, longevity, best_season,
+		       fragrance_type, short_description, created_at, updated_at
 		FROM perfumes
 		WHERE slug = $1
 	`
@@ -97,7 +117,8 @@ func (r *postgresPerfumeRepo) GetBySlug(ctx context.Context, slug string) (*mode
 		&row.ID, &row.Name, &row.Slug, &row.Subtitle, &row.Tagline, &row.Description,
 		&row.Price, &row.SizeMl, &row.Category, &row.Status, &row.Featured,
 		&row.TopNotes, &row.HeartNotes, &row.BaseNotes, &row.Images,
-		&row.Longevity, &row.BestSeason, &row.CreatedAt, &row.UpdatedAt,
+		&row.Longevity, &row.BestSeason, &row.FragranceType, &row.ShortDescription,
+		&row.CreatedAt, &row.UpdatedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -114,7 +135,8 @@ func (r *postgresPerfumeRepo) GetBySlug(ctx context.Context, slug string) (*mode
 func (r *postgresPerfumeRepo) GetByID(ctx context.Context, id string) (*models.Perfume, error) {
 	query := `
 		SELECT id, name, slug, subtitle, tagline, description, price, size_ml, category, status,
-		       featured, top_notes, heart_notes, base_notes, images, longevity, best_season, created_at, updated_at
+		       featured, top_notes, heart_notes, base_notes, images, longevity, best_season,
+		       fragrance_type, short_description, created_at, updated_at
 		FROM perfumes
 		WHERE id = $1
 	`
@@ -123,7 +145,8 @@ func (r *postgresPerfumeRepo) GetByID(ctx context.Context, id string) (*models.P
 		&row.ID, &row.Name, &row.Slug, &row.Subtitle, &row.Tagline, &row.Description,
 		&row.Price, &row.SizeMl, &row.Category, &row.Status, &row.Featured,
 		&row.TopNotes, &row.HeartNotes, &row.BaseNotes, &row.Images,
-		&row.Longevity, &row.BestSeason, &row.CreatedAt, &row.UpdatedAt,
+		&row.Longevity, &row.BestSeason, &row.FragranceType, &row.ShortDescription,
+		&row.CreatedAt, &row.UpdatedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -142,15 +165,26 @@ func (r *postgresPerfumeRepo) Create(ctx context.Context, p *models.Perfume) (*m
 		INSERT INTO perfumes (
 			name, slug, subtitle, tagline, description, price, size_ml,
 			category, status, featured, top_notes, heart_notes, base_notes,
-			images, longevity, best_season, created_at, updated_at
+			images, longevity, best_season, fragrance_type, short_description,
+			created_at, updated_at
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
 		)
 		RETURNING id, created_at, updated_at
 	`
 	now := time.Now()
 	if p.Slug == "" {
 		p.Slug = strings.ToLower(strings.ReplaceAll(p.Name, " ", "-"))
+	}
+
+	var ft sql.NullString
+	if p.FragranceType != nil && string(*p.FragranceType) != "" {
+		ft = sql.NullString{String: string(*p.FragranceType), Valid: true}
+	}
+
+	var sd sql.NullString
+	if p.ShortDescription != nil && *p.ShortDescription != "" {
+		sd = sql.NullString{String: *p.ShortDescription, Valid: true}
 	}
 
 	err := r.db.QueryRowContext(
@@ -172,6 +206,8 @@ func (r *postgresPerfumeRepo) Create(ctx context.Context, p *models.Perfume) (*m
 		pq.StringArray(p.Images),
 		p.Longevity,
 		p.BestSeason,
+		ft,
+		sd,
 		now,
 		now,
 	).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt)
@@ -203,13 +239,25 @@ func (r *postgresPerfumeRepo) Update(ctx context.Context, p *models.Perfume) (*m
 			images = $14,
 			longevity = $15,
 			best_season = $16,
-			updated_at = $17
-		WHERE id = $18
+			fragrance_type = $17,
+			short_description = $18,
+			updated_at = $19
+		WHERE id = $20
 		RETURNING updated_at
 	`
 	now := time.Now()
 	if p.Slug == "" {
 		p.Slug = strings.ToLower(strings.ReplaceAll(p.Name, " ", "-"))
+	}
+
+	var ft sql.NullString
+	if p.FragranceType != nil && string(*p.FragranceType) != "" {
+		ft = sql.NullString{String: string(*p.FragranceType), Valid: true}
+	}
+
+	var sd sql.NullString
+	if p.ShortDescription != nil && *p.ShortDescription != "" {
+		sd = sql.NullString{String: *p.ShortDescription, Valid: true}
 	}
 
 	err := r.db.QueryRowContext(
@@ -231,6 +279,8 @@ func (r *postgresPerfumeRepo) Update(ctx context.Context, p *models.Perfume) (*m
 		pq.StringArray(p.Images),
 		p.Longevity,
 		p.BestSeason,
+		ft,
+		sd,
 		now,
 		p.ID,
 	).Scan(&p.UpdatedAt)

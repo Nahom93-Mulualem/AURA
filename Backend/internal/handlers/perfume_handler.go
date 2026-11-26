@@ -32,10 +32,11 @@ func (h *PerfumeHandler) ListPerfumes(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	status := r.URL.Query().Get("status")
 	search := r.URL.Query().Get("search")
+	fragranceType := r.URL.Query().Get("fragrance_type")
 
-	perfumes, err := h.service.ListPerfumes(r.Context(), category, status, search)
+	perfumes, err := h.service.ListPerfumes(r.Context(), category, status, search, fragranceType)
 	if err != nil {
-		SendError(w, http.StatusInternalServerError, "Failed to retrieve perfumes: "+err.Error())
+		SendError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

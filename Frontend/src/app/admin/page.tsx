@@ -21,7 +21,14 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { Perfume, PerfumeCategory, PerfumeStatus } from "@/types/perfume";
+import {
+  Perfume,
+  PerfumeCategory,
+  PerfumeStatus,
+  FragranceType,
+  CATEGORY_LABELS,
+  FRAGRANCE_TYPE_LABELS,
+} from "@/types/perfume";
 import { formatPrice } from "@/lib/utils";
 import {
   fetchPerfumes,
@@ -77,9 +84,11 @@ export default function AdminPage() {
   const [formSubtitle, setFormSubtitle] = useState("");
   const [formTagline, setFormTagline] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  const [formShortDescription, setFormShortDescription] = useState("");
   const [formPriceEtb, setFormPriceEtb] = useState("");
   const [formSize, setFormSize] = useState("100ml");
-  const [formCategory, setFormCategory] = useState<PerfumeCategory>("unisex");
+  const [formCategory, setFormCategory] = useState<PerfumeCategory>("women");
+  const [formFragranceType, setFormFragranceType] = useState<string>("");
   const [formStatus, setFormStatus] = useState<PerfumeStatus>("available");
   const [formFeatured, setFormFeatured] = useState(false);
   const [formTopNotes, setFormTopNotes] = useState("");
@@ -181,9 +190,12 @@ export default function AdminPage() {
     setFormSubtitle(item.subtitle || "");
     setFormTagline(item.tagline || "");
     setFormDescription(item.description || "");
+    setFormShortDescription(item.shortDescription || "");
     setFormPriceEtb(String(item.price));
     setFormSize(String(item.sizeMl || "100ml"));
-    setFormCategory(item.category);
+    const cat = item.category === "feminine" ? "women" : item.category === "masculine" ? "men" : item.category;
+    setFormCategory(cat as PerfumeCategory);
+    setFormFragranceType(item.fragranceType || "");
     setFormStatus(item.status);
     setFormFeatured(item.featured);
     setFormTopNotes(item.notes?.top ? item.notes.top.join(", ") : "");
@@ -203,9 +215,11 @@ export default function AdminPage() {
     setFormSubtitle("");
     setFormTagline("");
     setFormDescription("");
+    setFormShortDescription("");
     setFormPriceEtb("");
     setFormSize("100ml");
-    setFormCategory("unisex");
+    setFormCategory("women");
+    setFormFragranceType("");
     setFormStatus("available");
     setFormFeatured(false);
     setFormTopNotes("");
@@ -284,6 +298,10 @@ export default function AdminPage() {
       alert("Name and price in ETB are required.");
       return;
     }
+    if (Array.from(formShortDescription).length > 140) {
+      alert("Short description must not exceed 140 characters.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -300,9 +318,11 @@ export default function AdminPage() {
         subtitle: formSubtitle.trim() || "Artisanal extrait de parfum",
         tagline: formTagline.trim() || "Scents that stay in memory.",
         description: formDescription.trim() || `Bespoke artisanal fragrance with notes of ${formTopNotes || "precious woods and florals"}.`,
+        shortDescription: formShortDescription.trim() || undefined,
         price: Number(formPriceEtb),
         sizeMl: formSize.trim() || "100ml",
         category: formCategory,
+        fragranceType: formFragranceType || undefined,
         status: formStatus,
         featured: formFeatured,
         notes: {
@@ -339,6 +359,10 @@ export default function AdminPage() {
       alert("Name and price in ETB are required.");
       return;
     }
+    if (Array.from(formShortDescription).length > 140) {
+      alert("Short description must not exceed 140 characters.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -354,9 +378,11 @@ export default function AdminPage() {
         subtitle: formSubtitle.trim(),
         tagline: formTagline.trim(),
         description: formDescription.trim(),
+        shortDescription: formShortDescription.trim() || "",
         price: Number(formPriceEtb),
         sizeMl: formSize.trim(),
         category: formCategory,
+        fragranceType: formFragranceType || "",
         status: formStatus,
         featured: formFeatured,
         notes: {
@@ -632,8 +658,17 @@ export default function AdminPage() {
                         </option>
                       </select>
                     </td>
-                    <td className="py-3 px-4 capitalize text-stone-muted">
-                      {item.category}
+                    <td className="py-3 px-4 text-stone-muted">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="capitalize text-softwhite font-medium">
+                          {CATEGORY_LABELS[item.category] || item.category}
+                        </span>
+                        {item.fragranceType && (
+                          <span className="text-[10px] text-gold uppercase tracking-wider">
+                            {FRAGRANCE_TYPE_LABELS[item.fragranceType as FragranceType] || item.fragranceType}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-right space-x-1.5">
                       <Link
@@ -707,7 +742,16 @@ export default function AdminPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-gold/10 text-xs">
-                  <span className="capitalize text-stone-muted">{item.category}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="capitalize text-stone-muted">
+                      {CATEGORY_LABELS[item.category] || item.category}
+                    </span>
+                    {item.fragranceType && (
+                      <span className="text-[10px] text-gold uppercase tracking-wider">
+                        • {FRAGRANCE_TYPE_LABELS[item.fragranceType as FragranceType] || item.fragranceType}
+                      </span>
+                    )}
+                  </div>
                   <select
                     value={item.status}
                     onChange={(e) =>
@@ -831,22 +875,43 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Category, Status & Featured */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Category, Fragrance Type, Status & Featured */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-gold mb-1 font-medium">
-                    Category
+                    Category *
                   </label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value as PerfumeCategory)}
                     className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none capitalize"
                   >
+                    <option value="women">Women</option>
+                    <option value="men">Men</option>
                     <option value="unisex">Unisex</option>
-                    <option value="feminine">Feminine</option>
-                    <option value="masculine">Masculine</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Fragrance Type (Optional)
+                  </label>
+                  <select
+                    value={formFragranceType}
+                    onChange={(e) => setFormFragranceType(e.target.value)}
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  >
+                    <option value="">None / Hide</option>
+                    <option value="eau_de_parfum">Eau de Parfum</option>
+                    <option value="eau_de_toilette">Eau de Toilette</option>
+                    <option value="extrait_de_parfum">Extrait de Parfum</option>
+                    <option value="perfume_oil">Perfume Oil</option>
+                    <option value="bakhoor">Bakhoor</option>
+                    <option value="body_splash">Body Splash</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-gold mb-1 font-medium">
                     Initial Status
@@ -872,6 +937,68 @@ export default function AdminPage() {
                   <label htmlFor="formFeatured" className="text-softwhite text-xs cursor-pointer">
                     Feature on Homepage
                   </label>
+                </div>
+              </div>
+
+              {/* Short Description with Live Unicode Counter (Max 140) */}
+              <div className="space-y-1 pt-1 border-t border-gold/15">
+                <div className="flex items-center justify-between">
+                  <label className="block text-gold font-medium">
+                    Short Description (Card Toggle Essence)
+                  </label>
+                  <span
+                    className={`text-[11px] font-mono ${
+                      Array.from(formShortDescription).length > 140
+                        ? "text-clay font-bold"
+                        : "text-stone-muted"
+                    }`}
+                  >
+                    {Array.from(formShortDescription).length} / 140
+                  </span>
+                </div>
+                <textarea
+                  rows={2}
+                  value={formShortDescription}
+                  onChange={(e) => setFormShortDescription(e.target.value)}
+                  placeholder="Concise 1-2 sentence description shown on card flip. Falls back to full description if empty."
+                  className={`w-full p-2.5 rounded-lg bg-midnight border text-softwhite focus:outline-none text-xs leading-relaxed ${
+                    Array.from(formShortDescription).length > 140
+                      ? "border-clay focus:border-clay"
+                      : "border-gold/20 focus:border-gold"
+                  }`}
+                />
+                {Array.from(formShortDescription).length > 140 && (
+                  <p className="text-[11px] text-clay font-medium">
+                    Short description must not exceed 140 characters.
+                  </p>
+                )}
+              </div>
+
+              {/* Tagline & Full Description */}
+              <div className="space-y-3 pt-1 border-t border-gold/15">
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Tagline (Detail Page Motto)
+                  </label>
+                  <input
+                    type="text"
+                    value={formTagline}
+                    onChange={(e) => setFormTagline(e.target.value)}
+                    placeholder="e.g. Scents that stay in memory."
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gold mb-1 font-medium">
+                    Full Description (Detail Page)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    placeholder="Artisanal story, inspiration and fragrance profile..."
+                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none text-xs leading-relaxed"
+                  />
                 </div>
               </div>
 
@@ -987,7 +1114,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || Array.from(formShortDescription).length > 140}
                   className="min-h-[40px] px-6 rounded-full bg-gold hover:bg-gold-light text-midnight font-medium uppercase tracking-wider text-xs flex items-center gap-2 shadow-glow disabled:opacity-50 transition-all"
                 >
                   {submitting ? (

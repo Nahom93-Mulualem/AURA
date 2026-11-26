@@ -6,7 +6,7 @@ BEGIN;
 DO $$
 BEGIN
     IF EXISTS (
-        SELECT 1 FROM perfumes 
+        SELECT 1 FROM public.perfumes 
         WHERE category IS NULL 
            OR category NOT IN ('women', 'men', 'unisex', 'feminine', 'masculine')
     ) THEN
@@ -15,13 +15,13 @@ BEGIN
 END $$;
 
 -- 2. Convert remaining legacy database values in place
-UPDATE perfumes SET category = 'women' WHERE category = 'feminine';
-UPDATE perfumes SET category = 'men' WHERE category = 'masculine';
+UPDATE public.perfumes SET category = 'women' WHERE category = 'feminine';
+UPDATE public.perfumes SET category = 'men' WHERE category = 'masculine';
 
 -- 3. Verify zero legacy values remain
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM perfumes WHERE category IN ('feminine', 'masculine')) THEN
+    IF EXISTS (SELECT 1 FROM public.perfumes WHERE category IN ('feminine', 'masculine')) THEN
         RAISE EXCEPTION 'Contract migration failed: legacy category values still present.';
     END IF;
 END $$;
@@ -32,10 +32,12 @@ DECLARE
     r RECORD;
 BEGIN
     FOR r IN (
-        SELECT c.conname 
+        SELECT c.conname, pg_get_constraintdef(c.oid) AS condef
         FROM pg_constraint c
         JOIN pg_class t ON c.conrelid = t.oid
+        JOIN pg_namespace n ON t.relnamespace = n.oid
         WHERE t.relname = 'perfumes' 
+          AND n.nspname = 'public'
           AND c.contype = 'c' 
           AND EXISTS (
               SELECT 1 FROM pg_attribute a 
@@ -44,12 +46,15 @@ BEGIN
                 AND a.attname = 'category'
           )
     ) LOOP
-        EXECUTE 'ALTER TABLE perfumes DROP CONSTRAINT IF EXISTS ' || quote_ident(r.conname);
+        IF r.condef ILIKE '%category%' THEN
+            RAISE NOTICE 'Dropping widened category constraint: % (definition: %)', r.conname, r.condef;
+            EXECUTE 'ALTER TABLE public.perfumes DROP CONSTRAINT IF EXISTS ' || quote_ident(r.conname);
+        END IF;
     END LOOP;
 END $$;
 
 -- 5. Apply final contracted constraint
-ALTER TABLE perfumes ADD CONSTRAINT perfumes_category_check 
+ALTER TABLE public.perfumes ADD CONSTRAINT perfumes_category_check 
     CHECK (category IN ('women', 'men', 'unisex'));
 
 COMMIT;

@@ -246,22 +246,69 @@ func TestDisposablePostgreSQL_MigrationMatrix(t *testing.T) {
 			t.Fatalf("Failed running 000004_contract_perfumes_schema.down.sql: %v", err)
 		}
 
-		// Verify women and men were reverse converted to feminine and masculine
-		var newCount int
-		err := testDB.QueryRow("SELECT COUNT(*) FROM perfumes WHERE category IN ('women', 'men')").Scan(&newCount)
-		if err != nil || newCount != 0 {
-			t.Fatalf("Expected 0 'women'/'men' rows after 000004 down rollback, got %d (err: %v)", newCount, err)
+		// 1. Verify women and men were reverse converted to feminine and masculine (zero remain)
+		var legacyRemaining int
+		err := testDB.QueryRow("SELECT COUNT(*) FROM public.perfumes WHERE category IN ('women', 'men')").Scan(&legacyRemaining)
+		if err != nil || legacyRemaining != 0 {
+			t.Fatalf("Expected 0 'women'/'men' rows after 000004 down rollback, got %d (err: %v)", legacyRemaining, err)
 		}
 
-		// Verify original constraint is enforced (rejecting 'women')
+		// 2. Verify fragrance_type and short_description columns still exist
+		var colCount int
+		err = testDB.QueryRow(`
+			SELECT COUNT(*) FROM information_schema.columns 
+			WHERE table_schema = 'public' AND table_name = 'perfumes' 
+			  AND column_name IN ('fragrance_type', 'short_description')
+		`).Scan(&colCount)
+		if err != nil || colCount != 2 {
+			t.Fatalf("Expected 2 columns (fragrance_type, short_description) preserved after 000004 down, got %d (err: %v)", colCount, err)
+		}
+
+		// 3. Verify inserting a perfume with category 'women' succeeds (5-category constraint active)
 		_, err = testDB.Exec(`
-			INSERT INTO perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
-			VALUES ('Rejected Women', 'rejected-women', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'women', 'available')
+			INSERT INTO public.perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
+			VALUES ('Restored Women', 'restored-women', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'women', 'available')
+		`)
+		if err != nil {
+			t.Fatalf("Expected inserting 'women' to succeed under 5-category constraint after 000004 down, got error: %v", err)
+		}
+
+		// 4. Verify inserting a perfume with category 'men' succeeds
+		_, err = testDB.Exec(`
+			INSERT INTO public.perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
+			VALUES ('Restored Men', 'restored-men', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'men', 'available')
+		`)
+		if err != nil {
+			t.Fatalf("Expected inserting 'men' to succeed under 5-category constraint after 000004 down, got error: %v", err)
+		}
+
+		// 5. Verify legacy categories 'feminine' and 'masculine' remain accepted
+		_, err = testDB.Exec(`
+			INSERT INTO public.perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
+			VALUES ('Accepted Feminine', 'accepted-feminine', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'feminine', 'available')
+		`)
+		if err != nil {
+			t.Fatalf("Expected inserting 'feminine' to succeed under 5-category constraint after 000004 down, got error: %v", err)
+		}
+
+		_, err = testDB.Exec(`
+			INSERT INTO public.perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
+			VALUES ('Accepted Masculine', 'accepted-masculine', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'masculine', 'available')
+		`)
+		if err != nil {
+			t.Fatalf("Expected inserting 'masculine' to succeed under 5-category constraint after 000004 down, got error: %v", err)
+		}
+
+		// 6. Verify an unsupported category is still rejected
+		_, err = testDB.Exec(`
+			INSERT INTO public.perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
+			VALUES ('Invalid Category', 'invalid-category', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'unknown', 'available')
 		`)
 		if err == nil {
-			t.Fatalf("Expected check constraint violation inserting 'women' after 000004 down, but succeeded")
+			t.Fatalf("Expected error inserting unsupported category 'unknown', but succeeded")
 		}
-		t.Logf("✓ Suite 4 Contract Rollback: Reverse conversion and 3-category constraint restored")
+
+		t.Logf("✓ Suite 4 Contract Rollback: Reverse conversion complete, 5-category constraint and columns preserved")
 	})
 
 	// ==========================================
@@ -282,6 +329,16 @@ func TestDisposablePostgreSQL_MigrationMatrix(t *testing.T) {
 		if err != nil || colCount != 0 {
 			t.Fatalf("Expected 0 new columns after 000003 down rollback, got %d (err: %v)", colCount, err)
 		}
+
+		// Verify that original 3-category constraint is now enforced (rejecting 'women')
+		_, err = testDB.Exec(`
+			INSERT INTO public.perfumes (name, slug, subtitle, tagline, description, price, size_ml, category, status)
+			VALUES ('Rejected Women Baseline', 'rejected-women-baseline', 'Sub', 'Tag', 'Desc', 4000, '100ml', 'women', 'available')
+		`)
+		if err == nil {
+			t.Fatalf("Expected check constraint violation inserting 'women' after 000003 down, but succeeded")
+		}
+
 		t.Logf("✓ Suite 5 Expand Rollback: Schema cleanly restored to initial baseline")
 	})
 

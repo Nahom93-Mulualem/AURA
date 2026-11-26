@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -50,16 +51,21 @@ func (s *authService) Login(ctx context.Context, email, password string) (*model
 
 	admin, err := s.adminRepo.GetByEmail(ctx, email)
 	if err != nil {
+		log.Println("Notice [AUTH DIAGNOSTIC] Database lookup failed")
 		return nil, err
 	}
 	if admin == nil {
+		log.Println("Notice [AUTH DIAGNOSTIC] Administrator not found")
 		return nil, errors.New("invalid email or password")
 	}
 
 	// Verify password hash
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(password)); err != nil {
+		log.Println("Notice [AUTH DIAGNOSTIC] Administrator found; password comparison failed")
 		return nil, errors.New("invalid email or password")
 	}
+
+	log.Println("✓ [AUTH DIAGNOSTIC] Password comparison succeeded")
 
 	// Issue JWT token (expires in 24 hours)
 	claims := &models.JWTClaims{

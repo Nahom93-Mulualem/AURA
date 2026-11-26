@@ -106,6 +106,12 @@ func TestAuthService_PasswordHashingAndJWT(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected login with wrong password to fail, got nil")
 	}
+
+	// 5. Test Login with non-existent administrator
+	_, err = svc.Login(ctx, "nonexistent@aurabyhani.com", rawPassword)
+	if err == nil {
+		t.Fatal("expected login with non-existent admin to fail, got nil")
+	}
 }
 
 func TestAuthService_ChangePassword(t *testing.T) {

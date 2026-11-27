@@ -78,28 +78,36 @@ export async function fetchPerfumes(params?: {
   const list = Array.isArray(json)
     ? json
     : json?.data && Array.isArray(json.data)
-    ? json.data
-    : [];
+      ? json.data
+      : [];
 
   return list;
 }
 
 // 2. Fetch single perfume by slug
 export async function fetchPerfumeBySlug(slug: string): Promise<Perfume | null> {
-  const res = await fetch(`${API_BASE}/perfumes/${encodeURIComponent(slug)}`, {
-    cache: "no-store",
-  });
+    let decodedSlug = slug;
+    try {
+      decodedSlug = decodeURIComponent(slug);
+    } catch {
+      // If slug contains a malformed percent sequence, fall back to raw slug safely
+      decodedSlug = slug;
+    }
 
-  if (res.status === 404) {
-    return null;
-  }
+  const res = await fetch(`${API_BASE}/perfumes/${encodeURIComponent(decodedSlug)}`, {
+      cache: "no-store",
+    });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch perfume: ${res.statusText}`);
-  }
+    if(res.status === 404) {
+      return null;
+}
 
-  const json = await res.json();
-  return json?.data || json;
+if (!res.ok) {
+  throw new Error(`Failed to fetch perfume: ${res.statusText}`);
+}
+
+const json = await res.json();
+return json?.data || json;
 }
 
 // 3. Create a new perfume (Admin protected)

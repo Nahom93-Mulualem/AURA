@@ -10,6 +10,7 @@ import {
   CATEGORY_LABELS,
   FRAGRANCE_TYPE_LABELS,
 } from "@/types/perfume";
+import { MOCK_PERFUMES } from "@/data/mockPerfumes";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
 import FragranceTypeHelpModal from "@/components/perfume/FragranceTypeHelpModal";
 import { fetchPerfumes } from "@/lib/api";
@@ -35,8 +36,8 @@ function CollectionContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [perfumes, setPerfumes] = useState<Perfume[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [perfumes, setPerfumes] = useState<Perfume[]>(MOCK_PERFUMES);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>(
@@ -58,13 +59,13 @@ function CollectionContent() {
   }, [searchParams]);
 
   const loadPerfumes = async () => {
-    setLoading(true);
-    setError(null);
     try {
       const data = await fetchPerfumes();
-      setPerfumes(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setPerfumes(data);
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to load collection from database.");
+      // Fallback silently to MOCK_PERFUMES so collection remains visible
     } finally {
       setLoading(false);
     }

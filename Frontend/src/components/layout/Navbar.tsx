@@ -25,6 +25,7 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -43,13 +44,16 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  const isHome = pathname === "/";
+
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? "bg-midnight/90 backdrop-blur-md border-b border-gold/15 py-3 shadow-glow"
-          : "bg-transparent py-5"
-          }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-midnight/90 backdrop-blur-md border-b border-gold/15 py-3 shadow-glow"
+            : "bg-transparent py-4 sm:py-5"
+        }`}
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex items-center justify-between">
           {/* Brand Logo */}
@@ -60,7 +64,7 @@ export default function Navbar() {
           >
             <AuraLogo size="md" showGlow />
             <div>
-              <span className="block font-serif text-lg sm:text-xl tracking-wider text-softwhite group-hover:text-gold transition-colors">
+              <span className="block font-serif text-lg sm:text-xl tracking-wider transition-colors text-softwhite group-hover:text-gold">
                 AURA
               </span>
               <span className="block text-[10px] tracking-[0.25em] text-gold uppercase -mt-1 font-sans">
@@ -77,10 +81,11 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`relative text-sm tracking-wide transition-colors py-1 ${isActive
-                    ? "text-gold font-medium"
-                    : "text-softwhite/80 hover:text-gold"
-                    }`}
+                  className={`relative text-sm tracking-wide transition-colors py-1 ${
+                    isActive
+                      ? "text-gold font-medium"
+                      : "text-softwhite/80 hover:text-gold"
+                  }`}
                 >
                   {link.name}
                   {isActive && (
@@ -91,13 +96,13 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Desktop Direct Contact CTA & Theme Toggle (ThemeToggle at the far right corner) */}
+          {/* Desktop Direct Contact CTA & Theme Toggle */}
           <div className="hidden md:flex items-center gap-4">
             <a
               href={BRAND_CONTACT.telegram}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gold/40 text-xs uppercase tracking-wider text-softwhite hover:border-gold hover:bg-gold/10 hover:text-gold transition-all duration-300 shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gold/40 text-xs uppercase tracking-wider transition-all duration-300 shadow-sm text-softwhite hover:border-gold hover:bg-gold/10 hover:text-gold"
             >
               <Send className="w-3.5 h-3.5 text-gold" />
               <span>Contact HANI</span>
@@ -110,7 +115,7 @@ export default function Navbar() {
             <ThemeToggle />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-11 h-11 flex items-center justify-center rounded-full text-softwhite hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              className="w-11 h-11 flex items-center justify-center rounded-full hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold text-softwhite"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
             >
@@ -137,8 +142,9 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-2xl font-serif tracking-wide py-2 border-b border-plum/80 flex items-center justify-between ${isActive ? "text-gold font-medium" : "text-softwhite"
-                    }`}
+                  className={`text-2xl font-serif tracking-wide py-2 border-b border-plum/80 flex items-center justify-between ${
+                    isActive ? "text-gold font-medium" : "text-softwhite"
+                  }`}
                 >
                   <span>{link.name}</span>
                   {isActive && <span className="w-2 h-2 rounded-full bg-gold" />}

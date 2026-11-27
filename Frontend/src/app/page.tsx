@@ -22,8 +22,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-20 sm:gap-28 pb-16">
-      {/* 1. HERO SECTION */}
-      <section className="relative min-h-[92vh] sm:min-h-screen flex items-center pt-24 pb-12 overflow-hidden">
+      {/* 1. HERO SECTION (Dynamic: Light warm ivory in light mode, deep midnight in dark mode) */}
+      <section className="relative min-h-[92vh] sm:min-h-screen flex items-center pt-24 sm:pt-28 pb-16 sm:pb-24 overflow-hidden bg-midnight text-softwhite">
         {/* Ambient background glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-gold/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute top-1/3 right-10 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-rose-dust/10 rounded-full blur-[100px] pointer-events-none" />
@@ -73,10 +73,10 @@ export default function HomePage() {
                 sizes="(max-width: 640px) 280px, 340px"
                 className="object-cover object-center"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-midnight via-transparent to-transparent opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-midnight/90 via-transparent to-transparent opacity-80" />
 
               {/* Float Card Tag */}
-              <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-lg bg-midnight/80 backdrop-blur-md border border-gold/25">
+              <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-lg bg-midnight/85 backdrop-blur-md border border-gold/25">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-gold tracking-widest uppercase block">
@@ -100,7 +100,7 @@ export default function HomePage() {
         </div>
 
         {/* Scroll down indicator */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-[11px] uppercase tracking-widest text-stone-muted opacity-60">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-[11px] uppercase tracking-widest text-stone-muted opacity-70">
           <span>Scroll</span>
           <ChevronDown className="w-4 h-4 animate-bounce" />
         </div>

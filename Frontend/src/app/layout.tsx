@@ -1,34 +1,44 @@
 import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/context/ThemeContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { ThemeProvider } from "@/context/ThemeContext";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Aura by HANI | Luxury Fragrances & Perfume Boutique",
+  title: "Aura by HANI | Handcrafted Perfumery",
   description:
-    "Choose your way. Artisanal perfumes and bespoke scents crafted by HANI. Browse exclusive fragrances and contact directly via Telegram, WhatsApp, or Instagram.",
+    "An ethereal fragrance house by Hani. Bespoke, evocative scents born from passion and the finest raw materials in Addis Ababa.",
   keywords: [
+    "perfume",
+    "fragrance",
+    "artisan perfume",
+    "Addis Ababa",
+    "luxury fragrance",
+    "scent",
     "Aura by HANI",
-    "luxury perfume",
-    "oud perfume",
-    "boutique fragrance",
-    "bespoke scents Ethiopia",
-    "Addis Ababa perfume",
   ],
-  openGraph: {
-    title: "Aura by HANI | Luxury Fragrances",
-    description: "Choose your way. Scents that stay in memory.",
-    type: "website",
-    locale: "en_US",
-  },
+  authors: [{ name: "Hani" }],
 };
 
 export const viewport: Viewport = {
+  themeColor: "#0E0B10",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
-  themeColor: "#0E0B10",
 };
 
 export default function RootLayout({
@@ -37,12 +47,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${cormorant.variable} ${inter.variable}`}>
       <head>
         {/* Anti-FOUC Theme Initialization Script */}
         <script
+          id="theme-initializer"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("aura_theme")||(window.matchMedia("(prefers-color-scheme: light)").matches?"day":"night");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem("aura-theme")||localStorage.getItem("aura_theme");var t=s==="light"||s==="day"?"light":(s==="dark"||s==="night"?"dark":(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));document.documentElement.setAttribute("data-theme",t);document.documentElement.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",t==="dark"?"#0E0B10":"#FAF6F0");}}catch(e){}})();`,
           }}
         />
       </head>

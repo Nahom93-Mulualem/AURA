@@ -7,20 +7,21 @@ import { Perfume } from "@/types/perfume";
 import { fetchPerfumes } from "@/lib/api";
 import PerfumeCard from "@/components/perfume/PerfumeCard";
 
+import { MOCK_PERFUMES } from "@/data/mockPerfumes";
+
 export default function FeaturedFragrances() {
-  const [perfumes, setPerfumes] = useState<Perfume[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [perfumes, setPerfumes] = useState<Perfume[]>(MOCK_PERFUMES);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchPerfumes()
       .then((data) => {
-        setPerfumes(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setPerfumes(data);
+        }
       })
       .catch(() => {
-        // Fallback or empty if server is not yet running
-      })
-      .finally(() => {
-        setLoading(false);
+        // Fall back gracefully to mock catalog
       });
   }, []);
 

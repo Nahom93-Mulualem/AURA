@@ -10,7 +10,7 @@ interface ParticleFieldProps {
 
 export default function ParticleField({ className = "" }: { className?: string }) {
   const { theme } = useTheme();
-  const isDay = theme === "day";
+  const isLight = theme === "light";
   const [isMobile, setIsMobile] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -56,8 +56,8 @@ export default function ParticleField({ className = "" }: { className?: string }
     >
       {/* Ambient mist glow backdrop */}
       <div
-        className={`absolute inset-0 transition-opacity duration-700 ${
-          isDay
+        className={`absolute inset-0 transition-opacity duration-300 ${
+          isLight
             ? "bg-gradient-to-t from-gold/15 via-gold/5 to-transparent opacity-80"
             : "bg-gradient-to-t from-white/10 via-plum/30 to-transparent opacity-60"
         }`}
@@ -75,7 +75,7 @@ export default function ParticleField({ className = "" }: { className?: string }
                 width: `${p.size}px`,
                 height: `${p.size}px`,
                 borderRadius: "50%",
-                background: isDay
+                background: isLight
                   ? "radial-gradient(circle, #DFBF8B 0%, #C9A66B 60%, transparent 100%)"
                   : "radial-gradient(circle, #FFFFFF 0%, #C0D0E5 60%, transparent 100%)",
                 opacity: 0.4,
@@ -116,8 +116,8 @@ export default function ParticleField({ className = "" }: { className?: string }
               willChange: "transform, opacity",
             }}
           >
-            {/* Day: Golden mist / pollen petal. Night: Silver sparkle star droplet */}
-            {isDay ? (
+            {/* Light: Golden mist / pollen petal. Dark: Silver sparkle star droplet */}
+            {isLight ? (
               <div
                 className="w-full h-full rounded-full shadow-[0_0_8px_rgba(201,166,107,0.8)]"
                 style={{

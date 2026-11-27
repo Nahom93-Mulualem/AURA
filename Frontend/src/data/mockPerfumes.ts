@@ -12,6 +12,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     price: 12500,
     sizeMl: 100,
     category: "unisex",
+    fragranceType: "extrait_de_parfum",
     status: "new",
     featured: true,
     notes: {
@@ -39,6 +40,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     price: 9800,
     sizeMl: 75,
     category: "feminine",
+    fragranceType: "eau_de_parfum",
     status: "available",
     featured: true,
     notes: {
@@ -66,6 +68,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     price: 14200,
     sizeMl: 100,
     category: "unisex",
+    fragranceType: "extrait_de_parfum",
     status: "available",
     featured: true,
     notes: {
@@ -93,6 +96,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     price: 8500,
     sizeMl: 50,
     category: "unisex",
+    fragranceType: "eau_de_parfum",
     status: "sold_out",
     featured: false,
     notes: {
@@ -119,6 +123,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     price: 8900,
     sizeMl: 75,
     category: "feminine",
+    fragranceType: "eau_de_parfum",
     status: "available",
     featured: false,
     notes: {
@@ -145,6 +150,7 @@ export const MOCK_PERFUMES: Perfume[] = [
     price: 13500,
     sizeMl: 100,
     category: "masculine",
+    fragranceType: "extrait_de_parfum",
     status: "available",
     featured: true,
     notes: {

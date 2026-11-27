@@ -459,7 +459,7 @@ export default function AdminPage() {
       {toastMessage && (
         <div className="fixed top-24 right-6 z-50 px-5 py-3 rounded-xl bg-midnight border border-gold/40 text-gold shadow-glow flex items-center gap-2.5 text-xs animate-in slide-in-from-top duration-300">
           <CheckCircle2 className="w-4 h-4 text-sage" />
-          <span>{toastMessage}</span>
+          <span className="font-medium">{toastMessage}</span>
         </div>
       )}
 

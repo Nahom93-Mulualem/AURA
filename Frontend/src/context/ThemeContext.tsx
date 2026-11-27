@@ -1,67 +1,105 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-type Theme = "night" | "day";
+export type Theme = "dark" | "light";
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: (event?: React.MouseEvent) => void;
-  ripple: { x: number; y: number; id: number } | null;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "night",
+  theme: "dark",
   toggleTheme: () => {},
-  ripple: null,
+  setTheme: () => {},
 });
 
+const STORAGE_KEY = "aura-theme";
+const LEGACY_STORAGE_KEY = "aura_theme";
+
+function applyThemeToDOM(theme: Theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  document.documentElement.style.colorScheme = theme;
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute("content", theme === "dark" ? "#0E0B10" : "#FAF6F0");
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("night");
-  const [ripple, setRipple] = useState<{ x: number; y: number; id: number } | null>(
-    null
-  );
+  const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
-    // Check localStorage first, then fallback to system preference
-    const saved = localStorage.getItem("aura_theme") as Theme | null;
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.setAttribute("data-theme", saved);
+    // 1. Check saved theme (primary key 'aura-theme', fallback 'aura_theme')
+    const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    if (saved === "dark" || saved === "night") {
+      setThemeState("dark");
+      applyThemeToDOM("dark");
+    } else if (saved === "light" || saved === "day") {
+      setThemeState("light");
+      applyThemeToDOM("light");
     } else {
-      const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-      const initial = prefersLight ? "day" : "night";
-      setTheme(initial);
-      document.documentElement.setAttribute("data-theme", initial);
+      // 2. No saved preference: follow system preference
+      const systemTheme: Theme = mediaQuery.matches ? "dark" : "light";
+      setThemeState(systemTheme);
+      applyThemeToDOM(systemTheme);
     }
+
+    // 3. Live system preference change listener when nothing is saved
+    const handleSystemChange = (e: MediaQueryListEvent) => {
+      const currentSaved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (!currentSaved) {
+        const nextTheme: Theme = e.matches ? "dark" : "light";
+        setThemeState(nextTheme);
+        applyThemeToDOM(nextTheme);
+      }
+    };
+    mediaQuery.addEventListener("change", handleSystemChange);
+
+    // 4. Cross-tab storage listener
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY || e.key === LEGACY_STORAGE_KEY) {
+        const val = e.newValue;
+        if (val === "dark" || val === "night") {
+          setThemeState("dark");
+          applyThemeToDOM("dark");
+        } else if (val === "light" || val === "day") {
+          setThemeState("light");
+          applyThemeToDOM("light");
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleSystemChange);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
-  const toggleTheme = (e?: React.MouseEvent) => {
-    const nextTheme: Theme = theme === "night" ? "day" : "night";
-    setTheme(nextTheme);
-    localStorage.setItem("aura_theme", nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
+  const setTheme = useCallback((nextTheme: Theme) => {
+    // Trigger transition class on user action
+    const html = document.documentElement;
+    html.classList.add("theme-transition");
+    setThemeState(nextTheme);
+    localStorage.setItem(STORAGE_KEY, nextTheme);
+    applyThemeToDOM(nextTheme);
 
-    // If an event is provided and reduced motion is false, compute ripple origin
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    window.setTimeout(() => {
+      html.classList.remove("theme-transition");
+    }, 300);
+  }, []);
 
-    if (!prefersReducedMotion) {
-      let x = window.innerWidth / 2;
-      let y = 60;
-      if (e?.currentTarget) {
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        x = rect.left + rect.width / 2;
-        y = rect.top + rect.height / 2;
-      }
-      setRipple({ x, y, id: Date.now() });
-      setTimeout(() => setRipple(null), 850);
-    }
-  };
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  }, [theme, setTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, ripple }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

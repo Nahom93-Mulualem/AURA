@@ -18,15 +18,15 @@ const config: Config = {
           dark: "rgba(var(--theme-gold-dark), <alpha-value>)",
         },
         rose: {
-          dust: "#D9A5A0",
+          dust: "rgba(var(--theme-rose-dust), <alpha-value>)",
         },
         softwhite: "rgba(var(--theme-text-softwhite), <alpha-value>)",
         charcoal: "#1D1A1F",
         stone: {
           muted: "rgba(var(--theme-text-muted), <alpha-value>)",
         },
-        sage: "#7FA68A",
-        clay: "#B5655C",
+        sage: "rgba(var(--theme-sage), <alpha-value>)",
+        clay: "rgba(var(--theme-clay), <alpha-value>)",
       },
       fontFamily: {
         serif: ["'Cormorant Garamond'", "'Playfair Display'", "Georgia", "serif"],

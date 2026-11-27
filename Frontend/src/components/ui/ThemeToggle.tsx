@@ -53,11 +53,10 @@ export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
     >
       {/* Visual pill track: 54px wide x 28px high, border-box */}
       <span
-        className={`relative inline-block w-[54px] h-[28px] rounded-full transition-colors duration-300 border ${
-          isDark
-            ? "bg-[#1A141F] border-gold/30 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
-            : "bg-[#F3EDE4] border-[#8A6A32]/30 shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]"
-        }`}
+        className={`relative inline-block w-[54px] h-[28px] rounded-full transition-colors duration-300 border ${isDark
+          ? "bg-[#1A141F] border-gold/30 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
+          : "bg-[#F3EDE4] border-[#8A6A32]/30 shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]"
+          }`}
       >
         {/* Sliding 22px Knob with 2px margins on all sides (x: 2px for Light, x: 26px for Dark inside 52px content width) */}
         <motion.span
@@ -69,16 +68,15 @@ export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
             prefersReducedMotion
               ? { duration: 0 }
               : {
-                  duration: 0.25,
-                  ease: [0.22, 1, 0.36, 1],
-                }
+                duration: 0.25,
+                ease: [0.22, 1, 0.36, 1],
+              }
           }
-          className={`absolute top-[2px] w-[22px] h-[22px] rounded-full flex items-center justify-center shadow-md transition-colors duration-300 ${isDark
-            ? "bg-[#0E0B10] text-gold border border-gold/40 shadow-[0_0_8px_rgba(201,166,107,0.4)]"
-            : visualDark
+          className={`absolute top-[2px] w-[22px] h-[22px] rounded-full flex items-center justify-center shadow-md transition-colors duration-300 ${
+            isDark
               ? "bg-[#0E0B10] text-gold border border-gold/40 shadow-[0_0_8px_rgba(201,166,107,0.4)]"
               : "bg-[#FAF6F0] text-[#8A6A32] border border-[#8A6A32]/30 shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
-            }`}
+          }`}
           aria-hidden="true"
         >
           {isDark ? (

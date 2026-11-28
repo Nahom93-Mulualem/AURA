@@ -45,24 +45,24 @@ export default function Footer() {
             <h4 className="text-xs uppercase tracking-[0.2em] text-gold font-medium">
               Explore
             </h4>
-            <ul className="space-y-2 text-sm text-softwhite/80">
+            <ul className="space-y-1 text-sm text-softwhite/80">
               <li>
-                <Link href="/" className="hover:text-gold transition-colors">
+                <Link href="/" className="min-h-[44px] flex items-center hover:text-gold transition-colors">
                   Home Experience
                 </Link>
               </li>
               <li>
-                <Link href="/collection" className="hover:text-gold transition-colors">
+                <Link href="/collection" className="min-h-[44px] flex items-center hover:text-gold transition-colors">
                   Perfume Collection
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-gold transition-colors">
+                <Link href="/about" className="min-h-[44px] flex items-center hover:text-gold transition-colors">
                   About HANI
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-gold transition-colors">
+                <Link href="/contact" className="min-h-[44px] flex items-center hover:text-gold transition-colors">
                   Contact Channels & FAQ
                 </Link>
               </li>

@@ -12,7 +12,6 @@ import {
   Shield,
   Eye,
   Search,
-  Upload,
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
@@ -30,28 +29,16 @@ import {
   FRAGRANCE_TYPE_LABELS,
 } from "@/types/perfume";
 import { formatPrice } from "@/lib/utils";
+import FragranceFormDialog from "@/components/admin/FragranceFormDialog";
 import {
   fetchPerfumes,
-  createPerfume,
-  updatePerfume,
   deletePerfume,
   updatePerfumeStatus,
-  uploadPerfumeImage,
   checkAdminSession,
   logoutAdmin,
   changeAdminPassword,
   updateAdminProfile,
-  PerfumePayload,
 } from "@/lib/api";
-
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/avif",
-];
-const MAX_FILE_SIZE_MB = 5;
 
 export default function AdminPage() {
   const router = useRouter();
@@ -78,28 +65,6 @@ export default function AdminPage() {
   const [securityLoading, setSecurityLoading] = useState(false);
   const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
   const [securityError, setSecurityError] = useState<string | null>(null);
-
-  // Add/Edit Form State
-  const [formName, setFormName] = useState("");
-  const [formSubtitle, setFormSubtitle] = useState("");
-  const [formTagline, setFormTagline] = useState("");
-  const [formDescription, setFormDescription] = useState("");
-  const [formShortDescription, setFormShortDescription] = useState("");
-  const [formPriceEtb, setFormPriceEtb] = useState("");
-  const [formSize, setFormSize] = useState("100ml");
-  const [formCategory, setFormCategory] = useState<PerfumeCategory>("women");
-  const [formFragranceType, setFormFragranceType] = useState<string>("");
-  const [formStatus, setFormStatus] = useState<PerfumeStatus>("available");
-  const [formFeatured, setFormFeatured] = useState(false);
-  const [formTopNotes, setFormTopNotes] = useState("");
-  const [formHeartNotes, setFormHeartNotes] = useState("");
-  const [formBaseNotes, setFormBaseNotes] = useState("");
-  const [formLongevity, setFormLongevity] = useState("Long-lasting");
-  const [formBestSeason, setFormBestSeason] = useState("All Seasons");
-  const [formImageUrl, setFormImageUrl] = useState("");
-  const [formImageFile, setFormImageFile] = useState<File | null>(null);
-  const [formImagePreview, setFormImagePreview] = useState<string | null>(null);
-  const [formUploadError, setFormUploadError] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -164,75 +129,27 @@ export default function AdminPage() {
     }
   };
 
-  // Handle local image file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormUploadError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      setFormUploadError("Unsupported format. Allowed: JPG, PNG, WebP, AVIF.");
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setFormUploadError("File exceeds 5MB size limit.");
-      return;
-    }
-
-    setFormImageFile(file);
-    setFormImagePreview(URL.createObjectURL(file));
-  };
-
-  // Open Edit Modal with existing values
+  // Open Edit Modal with selected perfume
   const openEditModal = (item: Perfume) => {
     setEditingPerfume(item);
-    setFormName(item.name);
-    setFormSubtitle(item.subtitle || "");
-    setFormTagline(item.tagline || "");
-    setFormDescription(item.description || "");
-    setFormShortDescription(item.shortDescription || "");
-    setFormPriceEtb(String(item.price));
-    setFormSize(String(item.sizeMl || "100ml"));
-    const cat = item.category === "feminine" ? "women" : item.category === "masculine" ? "men" : item.category;
-    setFormCategory(cat as PerfumeCategory);
-    setFormFragranceType(item.fragranceType || "");
-    setFormStatus(item.status);
-    setFormFeatured(item.featured);
-    setFormTopNotes(item.notes?.top ? item.notes.top.join(", ") : "");
-    setFormHeartNotes(item.notes?.heart ? item.notes.heart.join(", ") : "");
-    setFormBaseNotes(item.notes?.base ? item.notes.base.join(", ") : "");
-    setFormLongevity(item.longevity || "");
-    setFormBestSeason(item.bestSeason || "");
-    setFormImageUrl(item.images?.[0] || "");
-    setFormImageFile(null);
-    setFormImagePreview(item.images?.[0] || null);
-    setFormUploadError(null);
   };
 
   // Reset form
   const resetForm = () => {
-    setFormName("");
-    setFormSubtitle("");
-    setFormTagline("");
-    setFormDescription("");
-    setFormShortDescription("");
-    setFormPriceEtb("");
-    setFormSize("100ml");
-    setFormCategory("women");
-    setFormFragranceType("");
-    setFormStatus("available");
-    setFormFeatured(false);
-    setFormTopNotes("");
-    setFormHeartNotes("");
-    setFormBaseNotes("");
-    setFormLongevity("");
-    setFormBestSeason("");
-    setFormImageUrl("");
-    setFormImageFile(null);
-    setFormImagePreview(null);
-    setFormUploadError(null);
     setShowAddModal(false);
     setEditingPerfume(null);
+  };
+
+  // Callback when FragranceFormDialog saves successfully
+  const handleFragranceSaved = (savedPerfume: Perfume, isEdit: boolean) => {
+    if (isEdit) {
+      setPerfumes((prev) => prev.map((p) => (p && p.id === savedPerfume.id ? savedPerfume : p)));
+      showToast(`✓ Updated ${savedPerfume.name} (Price: ${formatPrice(savedPerfume.price)}) in database!`);
+    } else {
+      setPerfumes((prev) => [savedPerfume, ...prev.filter((p) => p && p.id !== savedPerfume.id)]);
+      showToast(`✓ Published ${savedPerfume.name} permanently to PostgreSQL!`);
+    }
+    resetForm();
   };
 
   // Submit Admin Email Update
@@ -288,126 +205,6 @@ export default function AdminPage() {
       setSecurityError(err.message || "Failed to change password.");
     } finally {
       setSecurityLoading(false);
-    }
-  };
-
-  // Submit Add Fragrance (POST)
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName.trim() || !formPriceEtb) {
-      alert("Name and price in ETB are required.");
-      return;
-    }
-    if (Array.from(formShortDescription).length > 140) {
-      alert("Short description must not exceed 140 characters.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      let finalImageUrl = formImageUrl.trim() ||
-        "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1000&auto=format&fit=crop";
-
-      // If a local image file was chosen, upload to backend first
-      if (formImageFile) {
-        finalImageUrl = await uploadPerfumeImage(formImageFile);
-      }
-
-      const payload: PerfumePayload = {
-        name: formName.trim(),
-        subtitle: formSubtitle.trim() || "Artisanal extrait de parfum",
-        tagline: formTagline.trim() || "Scents that stay in memory.",
-        description: formDescription.trim() || `Bespoke artisanal fragrance with notes of ${formTopNotes || "precious woods and florals"}.`,
-        shortDescription: formShortDescription.trim() || undefined,
-        price: Number(formPriceEtb),
-        sizeMl: formSize.trim() || "100ml",
-        category: formCategory,
-        fragranceType: formFragranceType || undefined,
-        status: formStatus,
-        featured: formFeatured,
-        notes: {
-          top: formTopNotes ? formTopNotes.split(",").map((s) => s.trim()).filter(Boolean) : ["Bergamot", "Cardamom"],
-          heart: formHeartNotes ? formHeartNotes.split(",").map((s) => s.trim()).filter(Boolean) : ["Amber", "Rose"],
-          base: formBaseNotes ? formBaseNotes.split(",").map((s) => s.trim()).filter(Boolean) : ["Oud", "Musk"],
-        },
-        images: [finalImageUrl],
-        longevity: formLongevity,
-        bestSeason: formBestSeason,
-      };
-
-      const created = await createPerfume(payload);
-      if (created && created.name) {
-        setPerfumes((prev) => [created, ...prev.filter((p) => p && p.id !== created.id)]);
-        showToast(`✓ Published ${created.name} permanently to PostgreSQL!`);
-      } else {
-        await loadCatalog();
-        showToast(`✓ Published fragrance permanently to PostgreSQL!`);
-      }
-      resetForm();
-    } catch (err: any) {
-      alert(`Failed to create perfume: ${err.message}. Make sure you are authenticated.`);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Submit Edit Fragrance (PUT)
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPerfume) return;
-    if (!formName.trim() || !formPriceEtb) {
-      alert("Name and price in ETB are required.");
-      return;
-    }
-    if (Array.from(formShortDescription).length > 140) {
-      alert("Short description must not exceed 140 characters.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      let finalImageUrl = formImageUrl.trim() || editingPerfume.images?.[0] || "";
-
-      // If user replaced with a new file
-      if (formImageFile) {
-        finalImageUrl = await uploadPerfumeImage(formImageFile);
-      }
-
-      const payload: Partial<PerfumePayload> = {
-        name: formName.trim(),
-        subtitle: formSubtitle.trim(),
-        tagline: formTagline.trim(),
-        description: formDescription.trim(),
-        shortDescription: formShortDescription.trim() || "",
-        price: Number(formPriceEtb),
-        sizeMl: formSize.trim(),
-        category: formCategory,
-        fragranceType: formFragranceType || "",
-        status: formStatus,
-        featured: formFeatured,
-        notes: {
-          top: formTopNotes ? formTopNotes.split(",").map((s) => s.trim()).filter(Boolean) : [],
-          heart: formHeartNotes ? formHeartNotes.split(",").map((s) => s.trim()).filter(Boolean) : [],
-          base: formBaseNotes ? formBaseNotes.split(",").map((s) => s.trim()).filter(Boolean) : [],
-        },
-        images: finalImageUrl ? [finalImageUrl] : editingPerfume.images,
-        longevity: formLongevity,
-        bestSeason: formBestSeason,
-      };
-
-      const updated = await updatePerfume(editingPerfume.id, payload);
-      if (updated && updated.name) {
-        setPerfumes((prev) => prev.map((p) => (p && p.id === updated.id ? updated : p)));
-        showToast(`✓ Updated ${updated.name} (Price: ${formatPrice(updated.price)}) in database!`);
-      } else {
-        await loadCatalog();
-        showToast(`✓ Updated fragrance in database!`);
-      }
-      resetForm();
-    } catch (err: any) {
-      alert(`Failed to update perfume: ${err.message}. Make sure you are authenticated.`);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -785,352 +582,13 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ADD / EDIT MODAL */}
-      {(showAddModal || editingPerfume) && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 bg-midnight/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div className="bg-plum border border-gold/30 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-glow my-8">
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <div>
-                <h3 className="font-serif text-xl text-softwhite">
-                  {editingPerfume ? `Edit: ${editingPerfume.name}` : "Add New Fragrance"}
-                </h3>
-                <p className="text-[11px] text-stone-muted mt-0.5">
-                  Changes save directly to PostgreSQL database.
-                </p>
-              </div>
-              <button
-                onClick={resetForm}
-                className="p-1 rounded-full text-stone-muted hover:text-gold"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={editingPerfume ? handleEditSubmit : handleCreateSubmit}
-              className="space-y-4 text-xs"
-            >
-              {/* Name & Subtitle */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Fragrance Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    placeholder="e.g. Amber Nocturne"
-                    required
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Subtitle Notes
-                  </label>
-                  <input
-                    type="text"
-                    value={formSubtitle}
-                    onChange={(e) => setFormSubtitle(e.target.value)}
-                    placeholder="e.g. Oud, Vanilla & Amber"
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Price & Size */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Price in ETB *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="any"
-                    value={formPriceEtb}
-                    onChange={(e) => setFormPriceEtb(e.target.value)}
-                    placeholder="e.g. 12500"
-                    required
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite font-mono focus:border-gold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Bottle Size
-                  </label>
-                  <input
-                    type="text"
-                    value={formSize}
-                    onChange={(e) => setFormSize(e.target.value)}
-                    placeholder="e.g. 50ml, 100ml"
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Category, Fragrance Type, Status & Featured */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Category *
-                  </label>
-                  <select
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value as PerfumeCategory)}
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none capitalize"
-                  >
-                    <option value="women">Women</option>
-                    <option value="men">Men</option>
-                    <option value="unisex">Unisex</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Fragrance Type (Optional)
-                  </label>
-                  <select
-                    value={formFragranceType}
-                    onChange={(e) => setFormFragranceType(e.target.value)}
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  >
-                    <option value="">None / Hide</option>
-                    <option value="eau_de_parfum">Eau de Parfum</option>
-                    <option value="eau_de_toilette">Eau de Toilette</option>
-                    <option value="extrait_de_parfum">Extrait de Parfum</option>
-                    <option value="perfume_oil">Perfume Oil</option>
-                    <option value="bakhoor">Bakhoor</option>
-                    <option value="body_splash">Body Splash</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Initial Status
-                  </label>
-                  <select
-                    value={formStatus}
-                    onChange={(e) => setFormStatus(e.target.value as PerfumeStatus)}
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  >
-                    <option value="available">Available</option>
-                    <option value="new">New Arrival</option>
-                    <option value="sold_out">Sold Out</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2 pt-6">
-                  <input
-                    type="checkbox"
-                    id="formFeatured"
-                    checked={formFeatured}
-                    onChange={(e) => setFormFeatured(e.target.checked)}
-                    className="w-4 h-4 rounded accent-gold"
-                  />
-                  <label htmlFor="formFeatured" className="text-softwhite text-xs cursor-pointer">
-                    Feature on Homepage
-                  </label>
-                </div>
-              </div>
-
-              {/* Short Description with Live Unicode Counter (Max 140) */}
-              <div className="space-y-1 pt-1 border-t border-gold/15">
-                <div className="flex items-center justify-between">
-                  <label className="block text-gold font-medium">
-                    Short Description (Card Toggle Essence)
-                  </label>
-                  <span
-                    className={`text-[11px] font-mono ${
-                      Array.from(formShortDescription).length > 140
-                        ? "text-clay font-bold"
-                        : "text-stone-muted"
-                    }`}
-                  >
-                    {Array.from(formShortDescription).length} / 140
-                  </span>
-                </div>
-                <textarea
-                  rows={2}
-                  value={formShortDescription}
-                  onChange={(e) => setFormShortDescription(e.target.value)}
-                  placeholder="Concise 1-2 sentence description shown on card flip. Falls back to full description if empty."
-                  className={`w-full p-2.5 rounded-lg bg-midnight border text-softwhite focus:outline-none text-xs leading-relaxed ${
-                    Array.from(formShortDescription).length > 140
-                      ? "border-clay focus:border-clay"
-                      : "border-gold/20 focus:border-gold"
-                  }`}
-                />
-                {Array.from(formShortDescription).length > 140 && (
-                  <p className="text-[11px] text-clay font-medium">
-                    Short description must not exceed 140 characters.
-                  </p>
-                )}
-              </div>
-
-              {/* Tagline & Full Description */}
-              <div className="space-y-3 pt-1 border-t border-gold/15">
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Tagline (Detail Page Motto)
-                  </label>
-                  <input
-                    type="text"
-                    value={formTagline}
-                    onChange={(e) => setFormTagline(e.target.value)}
-                    placeholder="e.g. Scents that stay in memory."
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Full Description (Detail Page)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={formDescription}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    placeholder="Artisanal story, inspiration and fragrance profile..."
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none text-xs leading-relaxed"
-                  />
-                </div>
-              </div>
-
-              {/* Olfactory Notes Pyramid */}
-              <div className="space-y-2 pt-1 border-t border-gold/15">
-                <span className="text-gold font-medium block">
-                  Olfactory Notes (Comma-separated)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <input
-                    type="text"
-                    value={formTopNotes}
-                    onChange={(e) => setFormTopNotes(e.target.value)}
-                    placeholder="Top (e.g. Saffron)"
-                    className="w-full p-2 rounded bg-midnight border border-gold/20 text-softwhite focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={formHeartNotes}
-                    onChange={(e) => setFormHeartNotes(e.target.value)}
-                    placeholder="Heart (e.g. Rose)"
-                    className="w-full p-2 rounded bg-midnight border border-gold/20 text-softwhite focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={formBaseNotes}
-                    onChange={(e) => setFormBaseNotes(e.target.value)}
-                    placeholder="Base (e.g. Oud)"
-                    className="w-full p-2 rounded bg-midnight border border-gold/20 text-softwhite focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Longevity & Best Season (Optional) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-gold/15">
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Longevity (Optional)
-                  </label>
-                  <select
-                    value={formLongevity}
-                    onChange={(e) => setFormLongevity(e.target.value)}
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  >
-                    <option value="">None / Hide</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Long-lasting">Long-lasting</option>
-                    <option value="Very long-lasting">Very long-lasting</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gold mb-1 font-medium">
-                    Best Season (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formBestSeason}
-                    onChange={(e) => setFormBestSeason(e.target.value)}
-                    placeholder="e.g. All Seasons, Fall / Winter"
-                    className="w-full p-2.5 rounded-lg bg-midnight border border-gold/20 text-softwhite focus:border-gold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Image Upload or URL */}
-              <div className="space-y-2 pt-1 border-t border-gold/15">
-                <label className="block text-gold font-medium">
-                  Bottle Photography
-                </label>
-                <div className="flex items-center gap-3">
-                  <label className="min-h-[38px] px-4 rounded-lg bg-midnight border border-gold/30 hover:border-gold text-softwhite text-xs flex items-center gap-2 cursor-pointer transition-colors">
-                    <Upload className="w-4 h-4 text-gold" />
-                    <span>Upload Image (.webp, .jpg, .png)</span>
-                    <input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.webp,.avif"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </label>
-                  {formImagePreview && (
-                    <div className="relative w-10 h-10 rounded overflow-hidden border border-gold/30">
-                      <Image
-                        src={formImagePreview}
-                        alt="Preview"
-                        fill
-                        unoptimized
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-                {formUploadError && (
-                  <p className="text-[11px] text-clay">{formUploadError}</p>
-                )}
-                <input
-                  type="url"
-                  value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  placeholder="Or paste external image URL (https://...)"
-                  className="w-full p-2 rounded bg-midnight border border-gold/20 text-softwhite text-[11px] focus:outline-none"
-                />
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gold/15">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-4 py-2 rounded-full border border-gold/20 text-stone-muted hover:text-softwhite transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting || Array.from(formShortDescription).length > 140}
-                  className="min-h-[40px] px-6 rounded-full bg-gold hover:bg-gold-light text-midnight font-medium uppercase tracking-wider text-xs flex items-center gap-2 shadow-glow disabled:opacity-50 transition-all"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Saving to PostgreSQL...</span>
-                    </>
-                  ) : (
-                    <span>{editingPerfume ? "Save Changes" : "Publish to Boutique"}</span>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ADD / EDIT FRAGRANCE MODAL (Mobile-responsive sheet on phones, max-h-[90dvh] dialog on desktop) */}
+      <FragranceFormDialog
+        isOpen={showAddModal || editingPerfume !== null}
+        editingPerfume={editingPerfume}
+        onClose={resetForm}
+        onSaved={handleFragranceSaved}
+      />
 
       {/* DELETE CONFIRMATION MODAL */}
       {deletingPerfume && (
